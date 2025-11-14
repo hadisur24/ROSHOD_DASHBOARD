@@ -7,9 +7,7 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.0.0"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/lz-string/1.4.4/lz-string.min.js"></script>
     <style>
-        /* Your existing CSS remains the same */
         * {
             margin: 0;
             padding: 0;
@@ -70,7 +68,6 @@
             background: rgba(255, 255, 255, 0.3);
         }
         
-        /* Rest of your existing CSS remains exactly the same */
         .upload-section {
             padding: 20px;
             border-bottom: 1px solid #eaeaea;
@@ -177,6 +174,15 @@
         
         .btn-clear:hover {
             background-color: #e0a800;
+        }
+        
+        .btn-export {
+            background-color: #17a2b8;
+            color: white;
+        }
+        
+        .btn-export:hover {
+            background-color: #138496;
         }
         
         .filters-section {
@@ -444,6 +450,21 @@
                     </div>
                     <div id="customerFileName" style="text-align: center; font-size: 14px; color: #666;"></div>
                 </div>
+                
+                <!-- Import/Export Section -->
+                <div style="text-align: center; margin: 20px 0; padding: 20px; background: #f8f9fa; border-radius: 8px; display: none;" id="importExportSection">
+                    <h4>Share Dashboard Options</h4>
+                    <div style="display: flex; gap: 10px; justify-content: center; margin-top: 15px; flex-wrap: wrap;">
+                        <button id="exportBtn" class="btn btn-export">Export Data File</button>
+                        <div class="file-input-wrapper" style="display: inline-block; width: auto;">
+                            <input type="file" id="importFileInput" class="file-input" accept=".json">
+                            <label for="importFileInput" class="file-input-label" style="background-color: #17a2b8;">Import Data File</label>
+                        </div>
+                    </div>
+                    <p style="font-size: 12px; margin-top: 10px; color: #666;">
+                        Export data as file to share with clients. They can import it to see the same dashboard.
+                    </p>
+                </div>
             </div>
         </div>
         
@@ -695,6 +716,9 @@
         const noDataMessage = document.getElementById('noDataMessage');
         const footer = document.getElementById('footer');
         const shareBtn = document.getElementById('shareBtn');
+        const importExportSection = document.getElementById('importExportSection');
+        const exportBtn = document.getElementById('exportBtn');
+        const importFileInput = document.getElementById('importFileInput');
         
         // Password modal elements
         const passwordModal = document.getElementById('passwordModal');
@@ -702,72 +726,102 @@
         const passwordCancel = document.getElementById('passwordCancel');
         const passwordConfirm = document.getElementById('passwordConfirm');
         
-        // NEW: Encode data to URL
-        function encodeDataToURL() {
-            if (rawData.length > 0 || customerRawData.length > 0) {
-                const dataToShare = {
-                    sales: rawData,
-                    customer: customerRawData,
-                    timestamp: new Date().getTime()
-                };
-                
-                // Compress and encode the data
-                const jsonString = JSON.stringify(dataToShare);
-                const compressed = LZString.compressToEncodedURIComponent(jsonString);
-                
-                // Update URL without reloading
-                const newUrl = window.location.origin + window.location.pathname + '?data=' + compressed;
-                window.history.replaceState({}, '', newUrl);
-                
-                return newUrl;
+        // NEW: Export data as file
+        function exportDashboardData() {
+            if (rawData.length === 0 && customerRawData.length === 0) {
+                alert('No data to export. Please upload Excel files first.');
+                return;
             }
-            return window.location.href;
+            
+            const dashboardData = {
+                sales: rawData,
+                customer: customerRawData,
+                timestamp: new Date().toISOString(),
+                version: '1.0'
+            };
+            
+            const dataStr = JSON.stringify(dashboardData, null, 2);
+            const dataBlob = new Blob([dataStr], {type: 'application/json'});
+            
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(dataBlob);
+            link.download = `roschod-dashboard-data-${new Date().getTime()}.json`;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            URL.revokeObjectURL(link.href);
+            
+            alert('Dashboard data exported successfully! Send this .json file to your client along with the website URL.');
         }
 
-        // NEW: Decode data from URL
-        function decodeDataFromURL() {
-            const urlParams = new URLSearchParams(window.location.search);
-            const encodedData = urlParams.get('data');
+        // NEW: Import data from file
+        function importDashboardData(file) {
+            const reader = new FileReader();
             
-            if (encodedData) {
+            reader.onload = function(e) {
                 try {
-                    const jsonString = LZString.decompressFromEncodedURIComponent(encodedData);
-                    const data = JSON.parse(jsonString);
+                    const importedData = JSON.parse(e.target.result);
                     
-                    if (data.sales) {
-                        rawData = data.sales;
+                    if (importedData.sales) {
+                        rawData = importedData.sales;
                         localStorage.setItem('salesDashboardData', JSON.stringify(rawData));
                     }
                     
-                    if (data.customer) {
-                        customerRawData = data.customer;
+                    if (importedData.customer) {
+                        customerRawData = importedData.customer;
                         localStorage.setItem('customerDashboardData', JSON.stringify(customerRawData));
                     }
                     
-                    return true;
+                    processData();
+                    updateFilters();
+                    applyFilters();
+                    showDashboard();
+                    
+                    alert('Dashboard data imported successfully!');
                 } catch (error) {
-                    console.error('Error decoding URL data:', error);
-                    return false;
+                    alert('Error importing data: Invalid file format. Please make sure you are importing a valid dashboard data file.');
                 }
-            }
-            return false;
+            };
+            
+            reader.readAsText(file);
         }
 
-        // NEW: Copy to clipboard function
-        function copyToClipboard(text) {
-            const textarea = document.createElement('textarea');
-            textarea.value = text;
-            document.body.appendChild(textarea);
-            textarea.select();
-            document.execCommand('copy');
-            document.body.removeChild(textarea);
-        }
-
-        // NEW: Share dashboard function
-        function shareDashboard() {
-            const shareUrl = encodeDataToURL();
-            copyToClipboard(shareUrl);
-            alert('Dashboard link copied to clipboard! Send this URL to your client.');
+        // NEW: Create share instructions modal
+        function createShareInstructions() {
+            const shareModal = document.createElement('div');
+            shareModal.innerHTML = `
+                <div class="password-modal" id="shareModal" style="display: flex;">
+                    <div class="password-modal-content">
+                        <h3>Share Dashboard</h3>
+                        <p>To share this dashboard with others:</p>
+                        <ol style="text-align: left; margin: 15px 0; padding-left: 20px;">
+                            <li>Send them this website address: <br><strong style="word-break: break-all;">${window.location.href.split('?')[0]}</strong></li>
+                            <li>Send them the exported data file (use Export button)</li>
+                            <li>They need to:<br>
+                                - Open the website<br>
+                                - Click "Import Data File"<br>
+                                - Select the data file you sent
+                            </li>
+                        </ol>
+                        <p><em>Note: The data file contains all your dashboard data in a secure format.</em></p>
+                        <div class="password-buttons">
+                            <button id="shareClose" class="btn btn-confirm">OK</button>
+                        </div>
+                    </div>
+                </div>
+            `;
+            document.body.appendChild(shareModal);
+            
+            document.getElementById('shareClose').addEventListener('click', function() {
+                document.getElementById('shareModal').remove();
+            });
+            
+            // Close modal when clicking outside
+            document.getElementById('shareModal').addEventListener('click', function(e) {
+                if (e.target === this) {
+                    this.remove();
+                }
+            });
         }
 
         // Tab switching for upload
@@ -804,23 +858,17 @@
             });
         });
         
-        // Check if data exists in localStorage or URL on page load
+        // Check if data exists in localStorage on page load
         document.addEventListener('DOMContentLoaded', function() {
-            // First try to load from URL
-            const hasURLData = decodeDataFromURL();
+            const savedData = localStorage.getItem('salesDashboardData');
+            const savedCustomerData = localStorage.getItem('customerDashboardData');
             
-            // If no URL data, try localStorage
-            if (!hasURLData) {
-                const savedData = localStorage.getItem('salesDashboardData');
-                const savedCustomerData = localStorage.getItem('customerDashboardData');
-                
-                if (savedData) {
-                    rawData = JSON.parse(savedData);
-                }
-                
-                if (savedCustomerData) {
-                    customerRawData = JSON.parse(savedCustomerData);
-                }
+            if (savedData) {
+                rawData = JSON.parse(savedData);
+            }
+            
+            if (savedCustomerData) {
+                customerRawData = JSON.parse(savedCustomerData);
             }
             
             if (rawData.length > 0 || customerRawData.length > 0) {
@@ -831,6 +879,9 @@
             } else {
                 showNoDataMessage();
             }
+            
+            // Show import/export section
+            importExportSection.style.display = 'block';
         });
         
         // Handle file uploads
@@ -933,10 +984,6 @@
             showDashboard();
             previewSection.style.display = 'none';
             uploadSection.style.display = 'none';
-            
-            // NEW: Encode data to URL and show share button
-            encodeDataToURL();
-            shareBtn.style.display = 'block';
         });
         
         // Cancel upload
@@ -2103,7 +2150,17 @@
         storeFilter.addEventListener('change', applyFilters);
         
         // NEW: Share button event listener
-        shareBtn.addEventListener('click', shareDashboard);
+        shareBtn.addEventListener('click', createShareInstructions);
+        
+        // NEW: Export button event listener
+        exportBtn.addEventListener('click', exportDashboardData);
+        
+        // NEW: Import file input event listener
+        importFileInput.addEventListener('change', function(e) {
+            if (e.target.files[0]) {
+                importDashboardData(e.target.files[0]);
+            }
+        });
         
         // Password protection for clear data
         clearDataBtn.addEventListener('click', function() {
@@ -2138,9 +2195,6 @@
                 salesFileName.textContent = '';
                 customerFileName.textContent = '';
                 passwordModal.style.display = 'none';
-                
-                // Clear URL parameters
-                window.history.replaceState({}, '', window.location.pathname);
                 
                 showNoDataMessage();
             } else {
