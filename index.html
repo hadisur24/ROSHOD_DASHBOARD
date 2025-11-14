@@ -1,0 +1,2047 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ROSHOD SALES DASHBOARD</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.0.0"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background-color: #f5f7fa;
+            color: #333;
+            padding: 20px;
+        }
+        
+        .dashboard-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background-color: white;
+            border-radius: 10px;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+        }
+        
+        .header {
+            background: linear-gradient(135deg, #1a3a8f, #2a56c6);
+            color: white;
+            padding: 20px 30px;
+            text-align: center;
+        }
+        
+        .header h1 {
+            font-size: 28px;
+            font-weight: 600;
+            margin-bottom: 5px;
+        }
+        
+        .header p {
+            font-size: 14px;
+            opacity: 0.9;
+        }
+        
+        .upload-section {
+            padding: 20px;
+            border-bottom: 1px solid #eaeaea;
+            background-color: #f9fafc;
+        }
+        
+        .upload-container {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+        
+        .file-input-wrapper {
+            position: relative;
+            display: inline-block;
+            width: 100%;
+        }
+        
+        .file-input {
+            position: absolute;
+            left: 0;
+            top: 0;
+            opacity: 0;
+            width: 100%;
+            height: 100%;
+            cursor: pointer;
+        }
+        
+        .file-input-label {
+            display: block;
+            padding: 12px 20px;
+            background-color: #2a56c6;
+            color: white;
+            border-radius: 5px;
+            text-align: center;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        
+        .file-input-label:hover {
+            background-color: #1a3a8f;
+        }
+        
+        .preview-section {
+            padding: 20px;
+            display: none;
+        }
+        
+        .preview-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+        }
+        
+        .preview-table th, .preview-table td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+        }
+        
+        .preview-table th {
+            background-color: #f2f2f2;
+        }
+        
+        .button-group {
+            display: flex;
+            gap: 10px;
+            margin-top: 15px;
+        }
+        
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: 500;
+            transition: all 0.3s;
+        }
+        
+        .btn-confirm {
+            background-color: #28a745;
+            color: white;
+        }
+        
+        .btn-confirm:hover {
+            background-color: #218838;
+        }
+        
+        .btn-cancel {
+            background-color: #dc3545;
+            color: white;
+        }
+        
+        .btn-cancel:hover {
+            background-color: #c82333;
+        }
+        
+        .btn-clear {
+            background-color: #ffc107;
+            color: #212529;
+        }
+        
+        .btn-clear:hover {
+            background-color: #e0a800;
+        }
+        
+        .filters-section {
+            padding: 15px 20px;
+            background-color: #f9fafc;
+            border-bottom: 1px solid #eaeaea;
+            display: none;
+        }
+        
+        .filter-container {
+            display: flex;
+            gap: 20px;
+            flex-wrap: wrap;
+        }
+        
+        .filter-group {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+        
+        .filter-group label {
+            font-size: 14px;
+            font-weight: 500;
+            color: #555;
+        }
+        
+        .filter-select {
+            padding: 8px 12px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            min-width: 150px;
+        }
+        
+        .dashboard-content {
+            padding: 20px;
+            display: none;
+        }
+
+        .dashboard-tabs {
+            display: flex;
+            margin-bottom: 20px;
+            border-bottom: 2px solid #eaeaea;
+            background-color: white;
+            border-radius: 8px 8px 0 0;
+            overflow: hidden;
+        }
+        
+        .dashboard-tab {
+            padding: 12px 24px;
+            cursor: pointer;
+            border: none;
+            background: transparent;
+            font-weight: 500;
+            transition: all 0.3s;
+            color: #666;
+            border-bottom: 3px solid transparent;
+        }
+        
+        .dashboard-tab.active {
+            background-color: #2a56c6;
+            color: white;
+            border-bottom: 3px solid #1a3a8f;
+        }
+        
+        .dashboard-tab-content {
+            display: none;
+        }
+        
+        .dashboard-tab-content.active {
+            display: block;
+        }
+        
+        .metrics-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        
+        .metric-card {
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+            padding: 20px;
+            border-left: 4px solid #2a56c6;
+        }
+        
+        .metric-card h3 {
+            font-size: 16px;
+            color: #666;
+            margin-bottom: 10px;
+        }
+        
+        .metric-value {
+            font-size: 24px;
+            font-weight: 600;
+            color: #2a56c6;
+        }
+        
+        .charts-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 20px;
+        }
+        
+        .chart-container {
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+            padding: 20px;
+        }
+        
+        .chart-container h3 {
+            font-size: 16px;
+            color: #333;
+            margin-bottom: 15px;
+            text-align: center;
+        }
+        
+        .chart-wrapper {
+            position: relative;
+            height: 300px;
+        }
+        
+        .footer {
+            padding: 15px 20px;
+            text-align: center;
+            background-color: #f9fafc;
+            border-top: 1px solid #eaeaea;
+            font-size: 14px;
+            color: #666;
+            display: none;
+        }
+
+        .footer a {
+            color: #2a56c6;
+            text-decoration: none;
+            font-weight: 600;
+            transition: color 0.3s;
+        }
+
+        .footer a:hover {
+            color: #1a3a8f;
+            text-decoration: underline;
+        }
+        
+        .no-data {
+            text-align: center;
+            padding: 40px;
+            color: #666;
+            display: none;
+        }
+        
+        .upload-tabs {
+            display: flex;
+            margin-bottom: 15px;
+            border-bottom: 1px solid #ddd;
+        }
+        
+        .upload-tab {
+            padding: 10px 20px;
+            cursor: pointer;
+            border: 1px solid transparent;
+            border-bottom: none;
+            border-radius: 5px 5px 0 0;
+            margin-right: 5px;
+        }
+        
+        .upload-tab.active {
+            background-color: #2a56c6;
+            color: white;
+        }
+        
+        .upload-content {
+            display: none;
+        }
+        
+        .upload-content.active {
+            display: block;
+        }
+
+        .password-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        .password-modal-content {
+            background-color: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.2);
+            width: 400px;
+            max-width: 90%;
+        }
+        
+        .password-modal h3 {
+            margin-bottom: 15px;
+            color: #333;
+        }
+        
+        .password-input {
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 15px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 16px;
+        }
+        
+        .password-buttons {
+            display: flex;
+            gap: 10px;
+            justify-content: flex-end;
+        }
+        
+        @media (max-width: 1024px) {
+            .metrics-grid, .charts-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="dashboard-container">
+        <div class="header">
+            <h1>ROSHOD SALES DASHBOARD</h1>
+            <p>Retail Performance Analytics</p>
+        </div>
+        
+        <div class="upload-section" id="uploadSection">
+            <div class="upload-tabs">
+                <div class="upload-tab active" id="salesTab">Sales Data</div>
+                <div class="upload-tab" id="customerTab">Customer Data</div>
+            </div>
+            
+            <div class="upload-container">
+                <div class="upload-content active" id="salesUpload">
+                    <div class="file-input-wrapper">
+                        <input type="file" id="salesFileInput" class="file-input" accept=".xlsx, .xls">
+                        <label for="salesFileInput" class="file-input-label">Choose Sales Data Excel File</label>
+                    </div>
+                    <div id="salesFileName" style="text-align: center; font-size: 14px; color: #666;"></div>
+                </div>
+                
+                <div class="upload-content" id="customerUpload">
+                    <div class="file-input-wrapper">
+                        <input type="file" id="customerFileInput" class="file-input" accept=".xlsx, .xls">
+                        <label for="customerFileInput" class="file-input-label">Choose Customer Data Excel File</label>
+                    </div>
+                    <div id="customerFileName" style="text-align: center; font-size: 14px; color: #666;"></div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="preview-section" id="previewSection">
+            <h3>Data Preview</h3>
+            <div id="previewTableContainer"></div>
+            <div class="button-group">
+                <button id="confirmBtn" class="btn btn-confirm">Confirm & Create Dashboard</button>
+                <button id="cancelBtn" class="btn btn-cancel">Cancel</button>
+            </div>
+        </div>
+        
+        <div class="filters-section" id="filtersSection">
+            <div class="filter-container">
+                <div class="filter-group">
+                    <label for="monthFilter">Month</label>
+                    <select id="monthFilter" class="filter-select">
+                        <option value="all">All Months</option>
+                    </select>
+                </div>
+                <div class="filter-group">
+                    <label for="storeFilter">Store Name</label>
+                    <select id="storeFilter" class="filter-select">
+                        <option value="all">All Stores</option>
+                    </select>
+                </div>
+                <div class="filter-group" style="margin-left: auto;">
+                    <button id="clearDataBtn" class="btn btn-clear">Clear Data</button>
+                </div>
+            </div>
+        </div>
+        
+        <div class="no-data" id="noDataMessage">
+            <h3>No data available</h3>
+            <p>Please upload an Excel file to view the dashboard</p>
+        </div>
+        
+        <div class="dashboard-content" id="dashboardContent">
+            <!-- Dashboard Tabs -->
+            <div class="dashboard-tabs">
+                <button class="dashboard-tab active" data-tab="overview">Overview</button>
+                <button class="dashboard-tab" data-tab="sales">Sales Data</button>
+                <button class="dashboard-tab" data-tab="customers">Customer Data</button>
+            </div>
+            
+            <!-- Overview Tab Content -->
+            <div class="dashboard-tab-content active" id="overviewTab">
+                <div class="metrics-grid" id="overviewMetricsGrid">
+                    <!-- Overview metrics will be populated here -->
+                </div>
+                
+                <div class="charts-grid">
+                    <div class="chart-container">
+                        <h3>Month Wise Sales Data</h3>
+                        <div class="chart-wrapper">
+                            <canvas id="salesChart"></canvas>
+                        </div>
+                    </div>
+                    
+                    <div class="chart-container">
+                        <h3>Basket Size Trend</h3>
+                        <div class="chart-wrapper">
+                            <canvas id="basketChart"></canvas>
+                        </div>
+                    </div>
+                    
+                    <div class="chart-container">
+                        <h3>GP Amount & Percentage Trend</h3>
+                        <div class="chart-wrapper">
+                            <canvas id="gpChart"></canvas>
+                        </div>
+                    </div>
+                    
+                    <div class="chart-container">
+                        <h3>No of Invoice Trend</h3>
+                        <div class="chart-wrapper">
+                            <canvas id="invoiceChart"></canvas>
+                        </div>
+                    </div>
+                    
+                    <div class="chart-container">
+                        <h3>Month to Month Sales Growth</h3>
+                        <div class="chart-wrapper">
+                            <canvas id="salesGrowthChart"></canvas>
+                        </div>
+                    </div>
+                    
+                    <div class="chart-container">
+                        <h3>Invoice Growth</h3>
+                        <div class="chart-wrapper">
+                            <canvas id="invoiceGrowthChart"></canvas>
+                        </div>
+                    </div>
+                    
+                    <!-- Customer Data Charts -->
+                    <div class="chart-container">
+                        <h3>New Customer Trend</h3>
+                        <div class="chart-wrapper">
+                            <canvas id="newCustomerChart"></canvas>
+                        </div>
+                    </div>
+                    
+                    <div class="chart-container">
+                        <h3>Eligible vs Unique Customer</h3>
+                        <div class="chart-wrapper">
+                            <canvas id="customerComparisonChart"></canvas>
+                        </div>
+                    </div>
+                    
+                    <div class="chart-container">
+                        <h3>Customer Conversion Rate</h3>
+                        <div class="chart-wrapper">
+                            <canvas id="conversionRateChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Sales Data Tab Content -->
+            <div class="dashboard-tab-content" id="salesTabContent">
+                <div class="metrics-grid" id="salesMetricsGrid">
+                    <!-- Sales metrics will be populated here -->
+                </div>
+                
+                <div class="charts-grid">
+                    <div class="chart-container">
+                        <h3>Month Wise Sales Data</h3>
+                        <div class="chart-wrapper">
+                            <canvas id="salesChartSegment"></canvas>
+                        </div>
+                    </div>
+                    
+                    <div class="chart-container">
+                        <h3>Basket Size Trend</h3>
+                        <div class="chart-wrapper">
+                            <canvas id="basketChartSegment"></canvas>
+                        </div>
+                    </div>
+                    
+                    <div class="chart-container">
+                        <h3>GP Amount & Percentage Trend</h3>
+                        <div class="chart-wrapper">
+                            <canvas id="gpChartSegment"></canvas>
+                        </div>
+                    </div>
+                    
+                    <div class="chart-container">
+                        <h3>No of Invoice Trend</h3>
+                        <div class="chart-wrapper">
+                            <canvas id="invoiceChartSegment"></canvas>
+                        </div>
+                    </div>
+                    
+                    <div class="chart-container">
+                        <h3>Month to Month Sales Growth</h3>
+                        <div class="chart-wrapper">
+                            <canvas id="salesGrowthChartSegment"></canvas>
+                        </div>
+                    </div>
+                    
+                    <div class="chart-container">
+                        <h3>Invoice Growth</h3>
+                        <div class="chart-wrapper">
+                            <canvas id="invoiceGrowthChartSegment"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Customer Data Tab Content -->
+            <div class="dashboard-tab-content" id="customersTabContent">
+                <div class="metrics-grid" id="customersMetricsGrid">
+                    <!-- Customer metrics will be populated here -->
+                </div>
+                
+                <div class="charts-grid">
+                    <div class="chart-container">
+                        <h3>New Customer Trend</h3>
+                        <div class="chart-wrapper">
+                            <canvas id="newCustomerChartSegment"></canvas>
+                        </div>
+                    </div>
+                    
+                    <div class="chart-container">
+                        <h3>Eligible vs Unique Customer</h3>
+                        <div class="chart-wrapper">
+                            <canvas id="customerComparisonChartSegment"></canvas>
+                        </div>
+                    </div>
+                    
+                    <div class="chart-container">
+                        <h3>Customer Conversion Rate</h3>
+                        <div class="chart-wrapper">
+                            <canvas id="conversionRateChartSegment"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="footer" id="footer">
+            Operated by <a href="https://www.linkedin.com/in/md-hadisur-rahman24" target="_blank">Hadisur Rahman</a>
+        </div>
+    </div>
+
+    <!-- Password Modal -->
+    <div class="password-modal" id="passwordModal">
+        <div class="password-modal-content">
+            <h3>Clear Data Confirmation</h3>
+            <p>Please enter the security code to clear all data:</p>
+            <input type="password" class="password-input" id="passwordInput" placeholder="Enter security code">
+            <div class="password-buttons">
+                <button id="passwordCancel" class="btn btn-cancel">Cancel</button>
+                <button id="passwordConfirm" class="btn btn-confirm">Confirm</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Global variables
+        let rawData = [];
+        let processedData = [];
+        let filteredData = [];
+        let customerRawData = [];
+        let processedCustomerData = [];
+        let filteredCustomerData = [];
+        let charts = {};
+        let activeTab = 'overview';
+        
+        // DOM elements
+        const uploadSection = document.getElementById('uploadSection');
+        const salesFileInput = document.getElementById('salesFileInput');
+        const customerFileInput = document.getElementById('customerFileInput');
+        const salesFileName = document.getElementById('salesFileName');
+        const customerFileName = document.getElementById('customerFileName');
+        const salesTab = document.getElementById('salesTab');
+        const customerTab = document.getElementById('customerTab');
+        const salesUpload = document.getElementById('salesUpload');
+        const customerUpload = document.getElementById('customerUpload');
+        const previewSection = document.getElementById('previewSection');
+        const previewTableContainer = document.getElementById('previewTableContainer');
+        const confirmBtn = document.getElementById('confirmBtn');
+        const cancelBtn = document.getElementById('cancelBtn');
+        const filtersSection = document.getElementById('filtersSection');
+        const monthFilter = document.getElementById('monthFilter');
+        const storeFilter = document.getElementById('storeFilter');
+        const clearDataBtn = document.getElementById('clearDataBtn');
+        const dashboardContent = document.getElementById('dashboardContent');
+        const noDataMessage = document.getElementById('noDataMessage');
+        const footer = document.getElementById('footer');
+        
+        // Password modal elements
+        const passwordModal = document.getElementById('passwordModal');
+        const passwordInput = document.getElementById('passwordInput');
+        const passwordCancel = document.getElementById('passwordCancel');
+        const passwordConfirm = document.getElementById('passwordConfirm');
+        
+        // Tab switching for upload
+        salesTab.addEventListener('click', function() {
+            salesTab.classList.add('active');
+            customerTab.classList.remove('active');
+            salesUpload.classList.add('active');
+            customerUpload.classList.remove('active');
+        });
+        
+        customerTab.addEventListener('click', function() {
+            customerTab.classList.add('active');
+            salesTab.classList.remove('active');
+            customerUpload.classList.add('active');
+            salesUpload.classList.remove('active');
+        });
+        
+        // Dashboard tab switching
+        document.querySelectorAll('.dashboard-tab').forEach(tab => {
+            tab.addEventListener('click', function() {
+                // Update active tab
+                document.querySelectorAll('.dashboard-tab').forEach(t => t.classList.remove('active'));
+                this.classList.add('active');
+                activeTab = this.getAttribute('data-tab');
+                
+                // Update tab content
+                document.querySelectorAll('.dashboard-tab-content').forEach(content => {
+                    content.classList.remove('active');
+                });
+                document.getElementById(`${activeTab}Tab`).classList.add('active');
+                
+                // Update dashboard for the active tab
+                updateDashboardForTab();
+            });
+        });
+        
+        // Check if data exists in localStorage on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            const savedData = localStorage.getItem('salesDashboardData');
+            const savedCustomerData = localStorage.getItem('customerDashboardData');
+            
+            if (savedData) {
+                rawData = JSON.parse(savedData);
+            }
+            
+            if (savedCustomerData) {
+                customerRawData = JSON.parse(savedCustomerData);
+            }
+            
+            if (savedData || savedCustomerData) {
+                processData();
+                updateFilters();
+                applyFilters();
+                showDashboard();
+            } else {
+                showNoDataMessage();
+            }
+        });
+        
+        // Handle file uploads
+        salesFileInput.addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (file) {
+                salesFileName.textContent = `Selected file: ${file.name}`;
+                readExcelFile(file, 'sales');
+            }
+        });
+        
+        customerFileInput.addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (file) {
+                customerFileName.textContent = `Selected file: ${file.name}`;
+                readExcelFile(file, 'customer');
+            }
+        });
+        
+        // Read Excel file
+        function readExcelFile(file, type) {
+            const reader = new FileReader();
+            
+            reader.onload = function(e) {
+                const data = new Uint8Array(e.target.result);
+                const workbook = XLSX.read(data, { type: 'array' });
+                
+                // Assuming first sheet contains the data
+                const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
+                const jsonData = XLSX.utils.sheet_to_json(firstSheet);
+                
+                if (type === 'sales') {
+                    // Validate required columns for sales data
+                    const requiredColumns = ['Store Name', 'Month', 'Category', 'No Of Invoice', 'Cost Price', 'Sold Price'];
+                    const hasRequiredColumns = requiredColumns.every(col => 
+                        jsonData.length > 0 && Object.keys(jsonData[0]).includes(col)
+                    );
+                    
+                    if (!hasRequiredColumns) {
+                        alert('Sales Excel file must contain the following columns: Store Name, Month, Category, No Of Invoice, Cost Price, Sold Price');
+                        return;
+                    }
+                    
+                    rawData = jsonData;
+                } else if (type === 'customer') {
+                    // Validate required columns for customer data
+                    const requiredColumns = ['STORE NAME', 'Date', 'Eligible Customer', 'Unique Customer', 'New Customer', 'Credit Limit', 'Credit Sales'];
+                    const hasRequiredColumns = requiredColumns.every(col => 
+                        jsonData.length > 0 && Object.keys(jsonData[0]).includes(col)
+                    );
+                    
+                    if (!hasRequiredColumns) {
+                        alert('Customer Excel file must contain the following columns: STORE NAME, Date, Eligible Customer, Unique Customer, New Customer, Credit Limit, Credit Sales');
+                        return;
+                    }
+                    
+                    customerRawData = jsonData;
+                }
+                
+                showPreview(type === 'sales' ? rawData : customerRawData);
+            };
+            
+            reader.readAsArrayBuffer(file);
+        }
+        
+        // Show data preview
+        function showPreview(data) {
+            // Show only first 5 rows for preview
+            const previewData = data.slice(0, 5);
+            
+            let tableHTML = `
+                <table class="preview-table">
+                    <thead>
+                        <tr>
+                            ${Object.keys(previewData[0]).map(key => `<th>${key}</th>`).join('')}
+                        </tr>
+                    </thead>
+                    <tbody>
+            `;
+            
+            previewData.forEach(row => {
+                tableHTML += '<tr>';
+                Object.values(row).forEach(value => {
+                    tableHTML += `<td>${value}</td>`;
+                });
+                tableHTML += '</tr>';
+            });
+            
+            tableHTML += '</tbody></table>';
+            previewTableContainer.innerHTML = tableHTML;
+            previewSection.style.display = 'block';
+        }
+        
+        // Confirm and create dashboard
+        confirmBtn.addEventListener('click', function() {
+            processData();
+            saveDataToLocalStorage();
+            updateFilters();
+            applyFilters();
+            showDashboard();
+            previewSection.style.display = 'none';
+            uploadSection.style.display = 'none'; // Hide upload section after dashboard is created
+        });
+        
+        // Cancel upload
+        cancelBtn.addEventListener('click', function() {
+            salesFileInput.value = '';
+            customerFileInput.value = '';
+            salesFileName.textContent = '';
+            customerFileName.textContent = '';
+            previewSection.style.display = 'none';
+        });
+        
+        // Process raw data
+        function processData() {
+            // Process sales data
+            if (rawData.length > 0) {
+                processSalesData();
+            }
+            
+            // Process customer data
+            if (customerRawData.length > 0) {
+                processCustomerData();
+            }
+        }
+        
+        // Process sales data
+        function processSalesData() {
+            // Convert Excel serial dates to readable format
+            rawData.forEach(row => {
+                // If month is a number (Excel serial date), convert it
+                if (typeof row.Month === 'number') {
+                    const excelSerial = row.Month;
+                    const date = new Date((excelSerial - 25569) * 86400 * 1000);
+                    const monthNames = ['January', 'February', 'March', 'April', 'May', 'June', 
+                                       'July', 'August', 'September', 'October', 'November', 'December'];
+                    const monthName = monthNames[date.getMonth()];
+                    const year = date.getFullYear().toString().slice(-2);
+                    row.Month = `${monthName}-${year}`;
+                }
+            });
+            
+            // Group data by month and store
+            const groupedData = {};
+            
+            rawData.forEach(row => {
+                const month = row.Month;
+                const store = row['Store Name'];
+                
+                if (!groupedData[month]) {
+                    groupedData[month] = {};
+                }
+                
+                if (!groupedData[month][store]) {
+                    groupedData[month][store] = {
+                        totalSold: 0,
+                        totalCost: 0,
+                        totalInvoices: 0,
+                        categories: {}
+                    };
+                }
+                
+                // Convert to numbers (remove commas if present)
+                const soldPrice = typeof row['Sold Price'] === 'number' ? 
+                    row['Sold Price'] : 
+                    parseFloat(String(row['Sold Price']).replace(/,/g, '')) || 0;
+                const costPrice = typeof row['Cost Price'] === 'number' ? 
+                    row['Cost Price'] : 
+                    parseFloat(String(row['Cost Price']).replace(/,/g, '')) || 0;
+                const invoices = typeof row['No Of Invoice'] === 'number' ? 
+                    row['No Of Invoice'] : 
+                    parseInt(String(row['No Of Invoice']).replace(/,/g, '')) || 0;
+                
+                groupedData[month][store].totalSold += soldPrice;
+                groupedData[month][store].totalCost += costPrice;
+                groupedData[month][store].totalInvoices += invoices;
+                
+                // Track category data
+                const category = row.Category;
+                if (!groupedData[month][store].categories[category]) {
+                    groupedData[month][store].categories[category] = {
+                        sold: 0,
+                        cost: 0,
+                        invoices: 0
+                    };
+                }
+                
+                groupedData[month][store].categories[category].sold += soldPrice;
+                groupedData[month][store].categories[category].cost += costPrice;
+                groupedData[month][store].categories[category].invoices += invoices;
+            });
+            
+            // Convert to array format for easier processing
+            processedData = [];
+            
+            Object.keys(groupedData).forEach(month => {
+                Object.keys(groupedData[month]).forEach(store => {
+                    const storeData = groupedData[month][store];
+                    const gpAmount = storeData.totalSold - storeData.totalCost;
+                    const gpPercentage = storeData.totalCost > 0 ? (gpAmount / storeData.totalCost) * 100 : 0;
+                    const basketSize = storeData.totalInvoices > 0 ? storeData.totalSold / storeData.totalInvoices : 0;
+                    
+                    processedData.push({
+                        month: month,
+                        store: store,
+                        totalSold: storeData.totalSold,
+                        totalCost: storeData.totalCost,
+                        totalInvoices: storeData.totalInvoices,
+                        gpAmount: gpAmount,
+                        gpPercentage: gpPercentage,
+                        basketSize: basketSize,
+                        categories: storeData.categories
+                    });
+                });
+            });
+            
+            // Sort by month
+            processedData.sort((a, b) => {
+                const monthOrder = {
+                    'January': 1, 'February': 2, 'March': 3, 'April': 4, 'May': 5, 'June': 6,
+                    'July': 7, 'August': 8, 'September': 9, 'October': 10, 'November': 11, 'December': 12
+                };
+                
+                const aMonth = a.month.split('-')[0];
+                const bMonth = b.month.split('-')[0];
+                const aYear = parseInt(a.month.split('-')[1]) || 25;
+                const bYear = parseInt(b.month.split('-')[1]) || 25;
+                
+                if (aYear !== bYear) return aYear - bYear;
+                return monthOrder[aMonth] - monthOrder[bMonth];
+            });
+        }
+        
+        // Process customer data
+        function processCustomerData() {
+            // Convert Excel dates and group customer data
+            const customerGroupedData = {};
+            
+            customerRawData.forEach(row => {
+                // Convert date if it's Excel serial number
+                let month = row.Date;
+                if (typeof row.Date === 'number') {
+                    const excelSerial = row.Date;
+                    const date = new Date((excelSerial - 25569) * 86400 * 1000);
+                    const monthNames = ['January', 'February', 'March', 'April', 'May', 'June', 
+                                       'July', 'August', 'September', 'October', 'November', 'December'];
+                    const monthName = monthNames[date.getMonth()];
+                    const year = date.getFullYear().toString().slice(-2);
+                    month = `${monthName}-${year}`;
+                }
+                
+                const store = row['STORE NAME'];
+                
+                if (!customerGroupedData[month]) {
+                    customerGroupedData[month] = {};
+                }
+                
+                if (!customerGroupedData[month][store]) {
+                    customerGroupedData[month][store] = {
+                        eligibleCustomer: 0,
+                        uniqueCustomer: 0,
+                        newCustomer: 0,
+                        creditLimit: 0,
+                        creditSales: 0
+                    };
+                }
+                
+                // Convert to numbers
+                const eligibleCustomer = typeof row['Eligible Customer'] === 'number' ? 
+                    row['Eligible Customer'] : 
+                    parseFloat(String(row['Eligible Customer']).replace(/,/g, '')) || 0;
+                const uniqueCustomer = typeof row['Unique Customer'] === 'number' ? 
+                    row['Unique Customer'] : 
+                    parseFloat(String(row['Unique Customer']).replace(/,/g, '')) || 0;
+                const newCustomer = typeof row['New Customer'] === 'number' ? 
+                    row['New Customer'] : 
+                    parseFloat(String(row['New Customer']).replace(/,/g, '')) || 0;
+                const creditLimit = typeof row['Credit Limit'] === 'number' ? 
+                    row['Credit Limit'] : 
+                    parseFloat(String(row['Credit Limit']).replace(/,/g, '')) || 0;
+                const creditSales = typeof row['Credit Sales'] === 'number' ? 
+                    row['Credit Sales'] : 
+                    parseFloat(String(row['Credit Sales']).replace(/,/g, '')) || 0;
+                
+                customerGroupedData[month][store].eligibleCustomer += eligibleCustomer;
+                customerGroupedData[month][store].uniqueCustomer += uniqueCustomer;
+                customerGroupedData[month][store].newCustomer += newCustomer;
+                customerGroupedData[month][store].creditLimit += creditLimit;
+                customerGroupedData[month][store].creditSales += creditSales;
+            });
+            
+            // Convert to array format
+            processedCustomerData = [];
+            
+            Object.keys(customerGroupedData).forEach(month => {
+                Object.keys(customerGroupedData[month]).forEach(store => {
+                    const storeData = customerGroupedData[month][store];
+                    const conversionRate = storeData.eligibleCustomer > 0 ? 
+                        (storeData.uniqueCustomer / storeData.eligibleCustomer) * 100 : 0;
+                    
+                    processedCustomerData.push({
+                        month: month,
+                        store: store,
+                        eligibleCustomer: storeData.eligibleCustomer,
+                        uniqueCustomer: storeData.uniqueCustomer,
+                        newCustomer: storeData.newCustomer,
+                        creditLimit: storeData.creditLimit,
+                        creditSales: storeData.creditSales,
+                        conversionRate: conversionRate
+                    });
+                });
+            });
+            
+            // Sort by month
+            processedCustomerData.sort((a, b) => {
+                const monthOrder = {
+                    'January': 1, 'February': 2, 'March': 3, 'April': 4, 'May': 5, 'June': 6,
+                    'July': 7, 'August': 8, 'September': 9, 'October': 10, 'November': 11, 'December': 12
+                };
+                
+                const aMonth = a.month.split('-')[0];
+                const bMonth = b.month.split('-')[0];
+                const aYear = parseInt(a.month.split('-')[1]) || 25;
+                const bYear = parseInt(b.month.split('-')[1]) || 25;
+                
+                if (aYear !== bYear) return aYear - bYear;
+                return monthOrder[aMonth] - monthOrder[bMonth];
+            });
+        }
+        
+        // Save data to localStorage
+        function saveDataToLocalStorage() {
+            localStorage.setItem('salesDashboardData', JSON.stringify(rawData));
+            localStorage.setItem('customerDashboardData', JSON.stringify(customerRawData));
+        }
+        
+        // Update filter options
+        function updateFilters() {
+            // Get unique months and stores from both datasets
+            const salesMonths = [...new Set(processedData.map(item => item.month))];
+            const customerMonths = [...new Set(processedCustomerData.map(item => item.month))];
+            const allMonths = [...new Set([...salesMonths, ...customerMonths])];
+            
+            const salesStores = [...new Set(processedData.map(item => item.store))];
+            const customerStores = [...new Set(processedCustomerData.map(item => item.store))];
+            const allStores = [...new Set([...salesStores, ...customerStores])];
+            
+            // Update month filter
+            monthFilter.innerHTML = '<option value="all">All Months</option>';
+            allMonths.forEach(month => {
+                monthFilter.innerHTML += `<option value="${month}">${month}</option>`;
+            });
+            
+            // Update store filter
+            storeFilter.innerHTML = '<option value="all">All Stores</option>';
+            allStores.forEach(store => {
+                storeFilter.innerHTML += `<option value="${store}">${store}</option>`;
+            });
+        }
+        
+        // Apply filters
+        function applyFilters() {
+            const selectedMonth = monthFilter.value;
+            const selectedStore = storeFilter.value;
+            
+            // Filter sales data
+            filteredData = processedData.filter(item => {
+                const monthMatch = selectedMonth === 'all' || item.month === selectedMonth;
+                const storeMatch = selectedStore === 'all' || item.store === selectedStore;
+                return monthMatch && storeMatch;
+            });
+            
+            // Filter customer data
+            filteredCustomerData = processedCustomerData.filter(item => {
+                const monthMatch = selectedMonth === 'all' || item.month === selectedMonth;
+                const storeMatch = selectedStore === 'all' || item.store === selectedStore;
+                return monthMatch && storeMatch;
+            });
+            
+            updateDashboardForTab();
+        }
+        
+        // Update dashboard for active tab
+        function updateDashboardForTab() {
+            if (filteredData.length === 0 && filteredCustomerData.length === 0) {
+                showNoDataMessage();
+                return;
+            }
+            
+            // Update metrics and charts based on active tab
+            switch(activeTab) {
+                case 'overview':
+                    updateOverviewTab();
+                    break;
+                case 'sales':
+                    updateSalesTab();
+                    break;
+                case 'customers':
+                    updateCustomersTab();
+                    break;
+            }
+            
+            dashboardContent.style.display = 'block';
+            noDataMessage.style.display = 'none';
+        }
+        
+        // Update Overview Tab
+        function updateOverviewTab() {
+            // Calculate metrics from sales data
+            let totalSales = 0, totalInvoices = 0, totalGpAmount = 0, avgBasketSize = 0, avgGpPercentage = 0;
+            
+            if (filteredData.length > 0) {
+                totalSales = filteredData.reduce((sum, item) => sum + item.totalSold, 0);
+                totalInvoices = filteredData.reduce((sum, item) => sum + item.totalInvoices, 0);
+                totalGpAmount = filteredData.reduce((sum, item) => sum + item.gpAmount, 0);
+                avgBasketSize = totalInvoices > 0 ? totalSales / totalInvoices : 0;
+                avgGpPercentage = filteredData.reduce((sum, item) => sum + item.gpPercentage, 0) / filteredData.length;
+            }
+            
+            // Calculate metrics from customer data
+            let totalNewCustomers = 0, totalEligibleCustomers = 0, totalUniqueCustomers = 0, avgConversionRate = 0;
+            
+            if (filteredCustomerData.length > 0) {
+                totalNewCustomers = filteredCustomerData.reduce((sum, item) => sum + item.newCustomer, 0);
+                totalEligibleCustomers = filteredCustomerData.reduce((sum, item) => sum + item.eligibleCustomer, 0);
+                totalUniqueCustomers = filteredCustomerData.reduce((sum, item) => sum + item.uniqueCustomer, 0);
+                avgConversionRate = filteredCustomerData.reduce((sum, item) => sum + item.conversionRate, 0) / filteredCustomerData.length;
+            }
+            
+            // Update metrics cards for overview
+            let metricsHTML = '';
+            
+            if (filteredData.length > 0) {
+                metricsHTML += `
+                    <div class="metric-card">
+                        <h3>Total Sales</h3>
+                        <div class="metric-value">${Math.round(totalSales).toLocaleString('en-IN')}</div>
+                    </div>
+                    <div class="metric-card">
+                        <h3>Total Invoices</h3>
+                        <div class="metric-value">${Math.round(totalInvoices).toLocaleString('en-IN')}</div>
+                    </div>
+                    <div class="metric-card">
+                        <h3>Average Basket Size</h3>
+                        <div class="metric-value">${Math.round(avgBasketSize).toLocaleString('en-IN')}</div>
+                    </div>
+                    <div class="metric-card">
+                        <h3>GP Percentage</h3>
+                        <div class="metric-value">${avgGpPercentage.toFixed(2)}%</div>
+                    </div>
+                `;
+            }
+            
+            if (filteredCustomerData.length > 0) {
+                metricsHTML += `
+                    <div class="metric-card">
+                        <h3>New Customers</h3>
+                        <div class="metric-value">${Math.round(totalNewCustomers).toLocaleString('en-IN')}</div>
+                    </div>
+                    <div class="metric-card">
+                        <h3>Eligible Customers</h3>
+                        <div class="metric-value">${Math.round(totalEligibleCustomers).toLocaleString('en-IN')}</div>
+                    </div>
+                    <div class="metric-card">
+                        <h3>Unique Customers</h3>
+                        <div class="metric-value">${Math.round(totalUniqueCustomers).toLocaleString('en-IN')}</div>
+                    </div>
+                    <div class="metric-card">
+                        <h3>Conversion Rate</h3>
+                        <div class="metric-value">${avgConversionRate.toFixed(2)}%</div>
+                    </div>
+                `;
+            }
+            
+            document.getElementById('overviewMetricsGrid').innerHTML = metricsHTML;
+            
+            // Update charts for overview
+            updateChartsForTab('overview');
+        }
+        
+        // Update Sales Tab
+        function updateSalesTab() {
+            if (filteredData.length === 0) {
+                document.getElementById('salesMetricsGrid').innerHTML = '<p>No sales data available for the selected filters</p>';
+                return;
+            }
+            
+            // Calculate metrics from sales data
+            const totalSales = filteredData.reduce((sum, item) => sum + item.totalSold, 0);
+            const totalInvoices = filteredData.reduce((sum, item) => sum + item.totalInvoices, 0);
+            const totalGpAmount = filteredData.reduce((sum, item) => sum + item.gpAmount, 0);
+            const avgBasketSize = totalInvoices > 0 ? totalSales / totalInvoices : 0;
+            const avgGpPercentage = filteredData.reduce((sum, item) => sum + item.gpPercentage, 0) / filteredData.length;
+            
+            // Update metrics cards for sales tab
+            document.getElementById('salesMetricsGrid').innerHTML = `
+                <div class="metric-card">
+                    <h3>Total Sales</h3>
+                    <div class="metric-value">${Math.round(totalSales).toLocaleString('en-IN')}</div>
+                </div>
+                <div class="metric-card">
+                    <h3>Total Invoices</h3>
+                    <div class="metric-value">${Math.round(totalInvoices).toLocaleString('en-IN')}</div>
+                </div>
+                <div class="metric-card">
+                    <h3>Average Basket Size</h3>
+                    <div class="metric-value">${Math.round(avgBasketSize).toLocaleString('en-IN')}</div>
+                </div>
+                <div class="metric-card">
+                    <h3>GP Percentage</h3>
+                    <div class="metric-value">${avgGpPercentage.toFixed(2)}%</div>
+                </div>
+            `;
+            
+            // Update charts for sales tab
+            updateChartsForTab('sales');
+        }
+        
+        // Update Customers Tab
+        function updateCustomersTab() {
+            if (filteredCustomerData.length === 0) {
+                document.getElementById('customersMetricsGrid').innerHTML = '<p>No customer data available for the selected filters</p>';
+                return;
+            }
+            
+            // Calculate metrics from customer data
+            const totalNewCustomers = filteredCustomerData.reduce((sum, item) => sum + item.newCustomer, 0);
+            const totalEligibleCustomers = filteredCustomerData.reduce((sum, item) => sum + item.eligibleCustomer, 0);
+            const totalUniqueCustomers = filteredCustomerData.reduce((sum, item) => sum + item.uniqueCustomer, 0);
+            const avgConversionRate = filteredCustomerData.reduce((sum, item) => sum + item.conversionRate, 0) / filteredCustomerData.length;
+            
+            // Update metrics cards for customers tab
+            document.getElementById('customersMetricsGrid').innerHTML = `
+                <div class="metric-card">
+                    <h3>New Customers</h3>
+                    <div class="metric-value">${Math.round(totalNewCustomers).toLocaleString('en-IN')}</div>
+                </div>
+                <div class="metric-card">
+                    <h3>Eligible Customers</h3>
+                    <div class="metric-value">${Math.round(totalEligibleCustomers).toLocaleString('en-IN')}</div>
+                </div>
+                <div class="metric-card">
+                    <h3>Unique Customers</h3>
+                    <div class="metric-value">${Math.round(totalUniqueCustomers).toLocaleString('en-IN')}</div>
+                </div>
+                <div class="metric-card">
+                    <h3>Conversion Rate</h3>
+                    <div class="metric-value">${avgConversionRate.toFixed(2)}%</div>
+                </div>
+            `;
+            
+            // Update charts for customers tab
+            updateChartsForTab('customers');
+        }
+        
+        // Update charts for specific tab
+        function updateChartsForTab(tab) {
+            // Destroy existing charts for this tab
+            Object.keys(charts).forEach(key => {
+                if (key.includes(tab) || (tab === 'overview' && !key.includes('Segment'))) {
+                    if (charts[key]) charts[key].destroy();
+                    delete charts[key];
+                }
+            });
+            
+            if (tab === 'overview') {
+                // Create sales charts if sales data exists
+                if (filteredData.length > 0) {
+                    createSalesCharts('overview');
+                }
+                
+                // Create customer charts if customer data exists
+                if (filteredCustomerData.length > 0) {
+                    createCustomerCharts('overview');
+                }
+            } else if (tab === 'sales' && filteredData.length > 0) {
+                createSalesCharts('sales');
+            } else if (tab === 'customers' && filteredCustomerData.length > 0) {
+                createCustomerCharts('customers');
+            }
+        }
+        
+        // Create sales charts
+        function createSalesCharts(tab) {
+            // Group data by month for charts
+            const monthlyData = {};
+            
+            filteredData.forEach(item => {
+                if (!monthlyData[item.month]) {
+                    monthlyData[item.month] = {
+                        totalSold: 0,
+                        totalCost: 0,
+                        totalInvoices: 0,
+                        gpAmount: 0,
+                        basketSize: 0
+                    };
+                }
+                
+                monthlyData[item.month].totalSold += item.totalSold;
+                monthlyData[item.month].totalCost += item.totalCost;
+                monthlyData[item.month].totalInvoices += item.totalInvoices;
+                monthlyData[item.month].gpAmount += item.gpAmount;
+            });
+            
+            // Calculate basket size and GP percentage
+            Object.keys(monthlyData).forEach(month => {
+                const data = monthlyData[month];
+                data.basketSize = data.totalInvoices > 0 ? data.totalSold / data.totalInvoices : 0;
+                data.gpPercentage = data.totalCost > 0 ? (data.gpAmount / data.totalCost) * 100 : 0;
+            });
+            
+            const months = Object.keys(monthlyData);
+            const salesData = months.map(month => monthlyData[month].totalSold);
+            const basketData = months.map(month => monthlyData[month].basketSize);
+            const gpAmountData = months.map(month => monthlyData[month].gpAmount);
+            const gpPercentageData = months.map(month => monthlyData[month].gpPercentage);
+            const invoiceData = months.map(month => monthlyData[month].totalInvoices);
+            
+            // Calculate growth rates
+            const salesGrowthData = calculateGrowthRates(salesData);
+            const invoiceGrowthData = calculateGrowthRates(invoiceData);
+            
+            // Create sales charts
+            const suffix = tab === 'overview' ? '' : 'Segment';
+            createSalesChart(months, salesData, `salesChart${suffix}`);
+            createBasketChart(months, basketData, `basketChart${suffix}`);
+            createGPChart(months, gpAmountData, gpPercentageData, `gpChart${suffix}`);
+            createInvoiceChart(months, invoiceData, `invoiceChart${suffix}`);
+            createSalesGrowthChart(months.slice(1), salesGrowthData, `salesGrowthChart${suffix}`);
+            createInvoiceGrowthChart(months.slice(1), invoiceGrowthData, `invoiceGrowthChart${suffix}`);
+        }
+        
+        // Create customer charts
+        function createCustomerCharts(tab) {
+            // Group customer data by month
+            const customerMonthlyData = {};
+            
+            filteredCustomerData.forEach(item => {
+                if (!customerMonthlyData[item.month]) {
+                    customerMonthlyData[item.month] = {
+                        eligibleCustomer: 0,
+                        uniqueCustomer: 0,
+                        newCustomer: 0,
+                        conversionRate: 0
+                    };
+                }
+                
+                customerMonthlyData[item.month].eligibleCustomer += item.eligibleCustomer;
+                customerMonthlyData[item.month].uniqueCustomer += item.uniqueCustomer;
+                customerMonthlyData[item.month].newCustomer += item.newCustomer;
+            });
+            
+            // Calculate conversion rate
+            Object.keys(customerMonthlyData).forEach(month => {
+                const data = customerMonthlyData[month];
+                data.conversionRate = data.eligibleCustomer > 0 ? 
+                    (data.uniqueCustomer / data.eligibleCustomer) * 100 : 0;
+            });
+            
+            const customerMonths = Object.keys(customerMonthlyData);
+            const newCustomerData = customerMonths.map(month => customerMonthlyData[month].newCustomer);
+            const eligibleCustomerData = customerMonths.map(month => customerMonthlyData[month].eligibleCustomer);
+            const uniqueCustomerData = customerMonths.map(month => customerMonthlyData[month].uniqueCustomer);
+            const conversionRateData = customerMonths.map(month => customerMonthlyData[month].conversionRate);
+            
+            // Create customer charts
+            const suffix = tab === 'overview' ? '' : 'Segment';
+            createNewCustomerChart(customerMonths, newCustomerData, `newCustomerChart${suffix}`);
+            createCustomerComparisonChart(customerMonths, eligibleCustomerData, uniqueCustomerData, `customerComparisonChart${suffix}`);
+            createConversionRateChart(customerMonths, conversionRateData, `conversionRateChart${suffix}`);
+        }
+        
+        // Calculate growth rates
+        function calculateGrowthRates(data) {
+            const growthRates = [];
+            for (let i = 1; i < data.length; i++) {
+                const previous = data[i-1];
+                const current = data[i];
+                const growthRate = previous !== 0 ? ((current - previous) / previous) * 100 : 0;
+                growthRates.push(growthRate);
+            }
+            return growthRates;
+        }
+        
+        // Chart creation functions (same as before but with chartId parameter)
+        function createSalesChart(months, salesData, chartId) {
+            const ctx = document.getElementById(chartId).getContext('2d');
+            charts[chartId] = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: months,
+                    datasets: [{
+                        label: 'Sales',
+                        data: salesData,
+                        backgroundColor: 'rgba(54, 162, 235, 0.7)',
+                        borderColor: 'rgba(54, 162, 235, 1)',
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        datalabels: {
+                            anchor: 'end',
+                            align: 'top',
+                            formatter: function(value) {
+                                return Math.round(value).toLocaleString('en-IN');
+                            },
+                            color: '#333',
+                            font: {
+                                weight: 'bold'
+                            }
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    return `Sales: ${Math.round(context.raw).toLocaleString('en-IN')}`;
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: {
+                                callback: function(value) {
+                                    return Math.round(value).toLocaleString('en-IN');
+                                }
+                            }
+                        }
+                    }
+                },
+                plugins: [ChartDataLabels]
+            });
+        }
+        
+        function createBasketChart(months, basketData, chartId) {
+            const ctx = document.getElementById(chartId).getContext('2d');
+            charts[chartId] = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: months,
+                    datasets: [{
+                        label: 'Basket Size',
+                        data: basketData,
+                        backgroundColor: 'rgba(255, 99, 132, 0.2)',
+                        borderColor: 'rgba(255, 99, 132, 1)',
+                        borderWidth: 2,
+                        tension: 0.3,
+                        fill: true
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        datalabels: {
+                            anchor: 'end',
+                            align: 'top',
+                            formatter: function(value) {
+                                return Math.round(value).toLocaleString('en-IN');
+                            },
+                            color: '#333',
+                            font: {
+                                weight: 'bold'
+                            }
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    return `Basket Size: ${Math.round(context.raw).toLocaleString('en-IN')}`;
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: {
+                                callback: function(value) {
+                                    return Math.round(value).toLocaleString('en-IN');
+                                }
+                            }
+                        }
+                    }
+                },
+                plugins: [ChartDataLabels]
+            });
+        }
+        
+        function createGPChart(months, gpAmountData, gpPercentageData, chartId) {
+            const ctx = document.getElementById(chartId).getContext('2d');
+            charts[chartId] = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: months,
+                    datasets: [
+                        {
+                            label: 'GP Amount',
+                            data: gpAmountData,
+                            backgroundColor: 'rgba(75, 192, 192, 0.7)',
+                            borderColor: 'rgba(75, 192, 192, 1)',
+                            borderWidth: 1,
+                            yAxisID: 'y',
+                            datalabels: {
+                                anchor: 'end',
+                                align: 'top',
+                                formatter: function(value) {
+                                    return Math.round(value).toLocaleString('en-IN');
+                                },
+                                color: '#333',
+                                font: {
+                                    weight: 'bold'
+                                }
+                            }
+                        },
+                        {
+                            label: 'GP Percentage',
+                            data: gpPercentageData,
+                            type: 'line',
+                            borderColor: 'rgba(153, 102, 255, 1)',
+                            borderWidth: 2,
+                            fill: false,
+                            tension: 0.3,
+                            yAxisID: 'y1',
+                            datalabels: {
+                                display: false
+                            }
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    if (context.dataset.label === 'GP Amount') {
+                                        return `GP Amount: ${Math.round(context.raw).toLocaleString('en-IN')}`;
+                                    } else {
+                                        return `GP Percentage: ${context.raw.toFixed(2)}%`;
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        y: {
+                            type: 'linear',
+                            display: true,
+                            position: 'left',
+                            beginAtZero: true,
+                            ticks: {
+                                callback: function(value) {
+                                    return Math.round(value).toLocaleString('en-IN');
+                                }
+                            }
+                        },
+                        y1: {
+                            type: 'linear',
+                            display: true,
+                            position: 'right',
+                            beginAtZero: true,
+                            grid: {
+                                drawOnChartArea: false,
+                            },
+                            ticks: {
+                                callback: function(value) {
+                                    return value.toFixed(2) + '%';
+                                }
+                            }
+                        }
+                    }
+                },
+                plugins: [ChartDataLabels]
+            });
+        }
+        
+        function createInvoiceChart(months, invoiceData, chartId) {
+            const ctx = document.getElementById(chartId).getContext('2d');
+            charts[chartId] = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: months,
+                    datasets: [{
+                        label: 'No of Invoices',
+                        data: invoiceData,
+                        backgroundColor: 'rgba(255, 159, 64, 0.7)',
+                        borderColor: 'rgba(255, 159, 64, 1)',
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        datalabels: {
+                            anchor: 'end',
+                            align: 'top',
+                            formatter: function(value) {
+                                return Math.round(value).toLocaleString('en-IN');
+                            },
+                            color: '#333',
+                            font: {
+                                weight: 'bold'
+                            }
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    return `Invoices: ${Math.round(context.raw).toLocaleString('en-IN')}`;
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: {
+                                callback: function(value) {
+                                    return Math.round(value).toLocaleString('en-IN');
+                                }
+                            }
+                        }
+                    }
+                },
+                plugins: [ChartDataLabels]
+            });
+        }
+        
+        function createSalesGrowthChart(months, growthData, chartId) {
+            const ctx = document.getElementById(chartId).getContext('2d');
+            charts[chartId] = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: months,
+                    datasets: [{
+                        label: 'Sales Growth %',
+                        data: growthData,
+                        backgroundColor: growthData.map(value => 
+                            value >= 0 ? 'rgba(40, 167, 69, 0.7)' : 'rgba(220, 53, 69, 0.7)'
+                        ),
+                        borderColor: growthData.map(value => 
+                            value >= 0 ? 'rgba(40, 167, 69, 1)' : 'rgba(220, 53, 69, 1)'
+                        ),
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        datalabels: {
+                            anchor: 'end',
+                            align: 'top',
+                            formatter: function(value) {
+                                return value.toFixed(2) + '%';
+                            },
+                            color: '#333',
+                            font: {
+                                weight: 'bold'
+                            }
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    return `Growth: ${context.raw.toFixed(2)}%`;
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        y: {
+                            ticks: {
+                                callback: function(value) {
+                                    return value.toFixed(2) + '%';
+                                }
+                            }
+                        }
+                    }
+                },
+                plugins: [ChartDataLabels]
+            });
+        }
+        
+        function createInvoiceGrowthChart(months, growthData, chartId) {
+            const ctx = document.getElementById(chartId).getContext('2d');
+            charts[chartId] = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: months,
+                    datasets: [{
+                        label: 'Invoice Growth %',
+                        data: growthData,
+                        backgroundColor: growthData.map(value => 
+                            value >= 0 ? 'rgba(40, 167, 69, 0.7)' : 'rgba(220, 53, 69, 0.7)'
+                        ),
+                        borderColor: growthData.map(value => 
+                            value >= 0 ? 'rgba(40, 167, 69, 1)' : 'rgba(220, 53, 69, 1)'
+                        ),
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        datalabels: {
+                            anchor: 'end',
+                            align: 'top',
+                            formatter: function(value) {
+                                return value.toFixed(2) + '%';
+                            },
+                            color: '#333',
+                            font: {
+                                weight: 'bold'
+                            }
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    return `Growth: ${context.raw.toFixed(2)}%`;
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        y: {
+                            ticks: {
+                                callback: function(value) {
+                                    return value.toFixed(2) + '%';
+                                }
+                            }
+                        }
+                    }
+                },
+                plugins: [ChartDataLabels]
+            });
+        }
+        
+        // Customer chart creation functions
+        function createNewCustomerChart(months, newCustomerData, chartId) {
+            const ctx = document.getElementById(chartId).getContext('2d');
+            charts[chartId] = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: months,
+                    datasets: [{
+                        label: 'New Customers',
+                        data: newCustomerData,
+                        backgroundColor: 'rgba(54, 162, 235, 0.7)',
+                        borderColor: 'rgba(54, 162, 235, 1)',
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        datalabels: {
+                            anchor: 'end',
+                            align: 'top',
+                            formatter: function(value) {
+                                return Math.round(value).toLocaleString('en-IN');
+                            },
+                            color: '#333',
+                            font: {
+                                weight: 'bold'
+                            }
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    return `New Customers: ${Math.round(context.raw).toLocaleString('en-IN')}`;
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: {
+                                callback: function(value) {
+                                    return Math.round(value).toLocaleString('en-IN');
+                                }
+                            }
+                        }
+                    }
+                },
+                plugins: [ChartDataLabels]
+            });
+        }
+        
+        function createCustomerComparisonChart(months, eligibleCustomerData, uniqueCustomerData, chartId) {
+            const ctx = document.getElementById(chartId).getContext('2d');
+            charts[chartId] = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: months,
+                    datasets: [
+                        {
+                            label: 'Eligible Customers',
+                            data: eligibleCustomerData,
+                            backgroundColor: 'rgba(75, 192, 192, 0.7)',
+                            borderColor: 'rgba(75, 192, 192, 1)',
+                            borderWidth: 1,
+                            yAxisID: 'y'
+                        },
+                        {
+                            label: 'Unique Customers',
+                            data: uniqueCustomerData,
+                            type: 'line',
+                            borderColor: 'rgba(153, 102, 255, 1)',
+                            borderWidth: 2,
+                            fill: false,
+                            tension: 0.3,
+                            yAxisID: 'y1',
+                            datalabels: {
+                                display: false
+                            }
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    if (context.dataset.label === 'Eligible Customers') {
+                                        return `Eligible: ${Math.round(context.raw).toLocaleString('en-IN')}`;
+                                    } else {
+                                        return `Unique: ${Math.round(context.raw).toLocaleString('en-IN')}`;
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        y: {
+                            type: 'linear',
+                            display: true,
+                            position: 'left',
+                            beginAtZero: true,
+                            ticks: {
+                                callback: function(value) {
+                                    return Math.round(value).toLocaleString('en-IN');
+                                }
+                            }
+                        },
+                        y1: {
+                            type: 'linear',
+                            display: true,
+                            position: 'right',
+                            beginAtZero: true,
+                            grid: {
+                                drawOnChartArea: false,
+                            },
+                            ticks: {
+                                callback: function(value) {
+                                    return Math.round(value).toLocaleString('en-IN');
+                                }
+                            }
+                        }
+                    }
+                },
+                plugins: [ChartDataLabels]
+            });
+        }
+        
+        function createConversionRateChart(months, conversionRateData, chartId) {
+            const ctx = document.getElementById(chartId).getContext('2d');
+            charts[chartId] = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: months,
+                    datasets: [{
+                        label: 'Conversion Rate %',
+                        data: conversionRateData,
+                        backgroundColor: 'rgba(255, 99, 132, 0.2)',
+                        borderColor: 'rgba(255, 99, 132, 1)',
+                        borderWidth: 2,
+                        tension: 0.3,
+                        fill: true
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        datalabels: {
+                            anchor: 'end',
+                            align: 'top',
+                            formatter: function(value) {
+                                return value.toFixed(2) + '%';
+                            },
+                            color: '#333',
+                            font: {
+                                weight: 'bold'
+                            }
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    return `Conversion Rate: ${context.raw.toFixed(2)}%`;
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: {
+                                callback: function(value) {
+                                    return value.toFixed(2) + '%';
+                                }
+                            }
+                        }
+                    }
+                },
+                plugins: [ChartDataLabels]
+            });
+        }
+        
+        // Show dashboard
+        function showDashboard() {
+            filtersSection.style.display = 'block';
+            dashboardContent.style.display = 'block';
+            footer.style.display = 'block';
+            noDataMessage.style.display = 'none';
+            
+            // Initialize with overview tab
+            updateDashboardForTab();
+        }
+        
+        // Show no data message
+        function showNoDataMessage() {
+            filtersSection.style.display = 'none';
+            dashboardContent.style.display = 'none';
+            footer.style.display = 'block';
+            noDataMessage.style.display = 'block';
+            uploadSection.style.display = 'block'; // Show upload section when no data
+        }
+        
+        // Format numbers with commas and 0 decimals
+        function formatCurrency(value, compact = false) {
+            if (typeof value === 'string') {
+                value = parseFloat(value.replace(/,/g, ''));
+            }
+            return Math.round(value).toLocaleString('en-IN', {
+                maximumFractionDigits: 0,
+                minimumFractionDigits: 0
+            });
+        }
+        
+        // Event listeners for filters
+        monthFilter.addEventListener('change', applyFilters);
+        storeFilter.addEventListener('change', applyFilters);
+        
+        // Password protection for clear data
+        clearDataBtn.addEventListener('click', function() {
+            passwordModal.style.display = 'flex';
+            passwordInput.value = '';
+            passwordInput.focus();
+        });
+        
+        passwordCancel.addEventListener('click', function() {
+            passwordModal.style.display = 'none';
+        });
+        
+        passwordConfirm.addEventListener('click', function() {
+            if (passwordInput.value === '19591') {
+                localStorage.removeItem('salesDashboardData');
+                localStorage.removeItem('customerDashboardData');
+                rawData = [];
+                processedData = [];
+                filteredData = [];
+                customerRawData = [];
+                processedCustomerData = [];
+                filteredCustomerData = [];
+                
+                // Destroy all charts
+                Object.values(charts).forEach(chart => {
+                    if (chart) chart.destroy();
+                });
+                charts = {};
+                
+                salesFileInput.value = '';
+                customerFileInput.value = '';
+                salesFileName.textContent = '';
+                customerFileName.textContent = '';
+                passwordModal.style.display = 'none';
+                showNoDataMessage();
+            } else {
+                alert('Incorrect security code. Data not cleared.');
+                passwordInput.value = '';
+                passwordInput.focus();
+            }
+        });
+        
+        // Close password modal when clicking outside
+        window.addEventListener('click', function(event) {
+            if (event.target === passwordModal) {
+                passwordModal.style.display = 'none';
+            }
+        });
+        
+        // Enter key support for password input
+        passwordInput.addEventListener('keypress', function(event) {
+            if (event.key === 'Enter') {
+                passwordConfirm.click();
+            }
+        });
+    </script>
+</body>
+</html>
