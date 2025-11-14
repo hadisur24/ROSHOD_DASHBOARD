@@ -7,7 +7,9 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.0.0"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/lz-string/1.4.4/lz-string.min.js"></script>
     <style>
+        /* Your existing CSS remains the same */
         * {
             margin: 0;
             padding: 0;
@@ -35,6 +37,7 @@
             color: white;
             padding: 20px 30px;
             text-align: center;
+            position: relative;
         }
         
         .header h1 {
@@ -48,6 +51,26 @@
             opacity: 0.9;
         }
         
+        .share-btn {
+            position: absolute;
+            right: 20px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: rgba(255, 255, 255, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            color: white;
+            padding: 8px 15px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.3s;
+        }
+        
+        .share-btn:hover {
+            background: rgba(255, 255, 255, 0.3);
+        }
+        
+        /* Rest of your existing CSS remains exactly the same */
         .upload-section {
             padding: 20px;
             border-bottom: 1px solid #eaeaea;
@@ -382,6 +405,12 @@
             .metrics-grid, .charts-grid {
                 grid-template-columns: 1fr;
             }
+            
+            .share-btn {
+                position: static;
+                transform: none;
+                margin-top: 10px;
+            }
         }
     </style>
 </head>
@@ -390,6 +419,7 @@
         <div class="header">
             <h1>ROSHOD SALES DASHBOARD</h1>
             <p>Retail Performance Analytics</p>
+            <button class="share-btn" id="shareBtn" style="display: none;">📤 Share Dashboard</button>
         </div>
         
         <div class="upload-section" id="uploadSection">
@@ -664,6 +694,7 @@
         const dashboardContent = document.getElementById('dashboardContent');
         const noDataMessage = document.getElementById('noDataMessage');
         const footer = document.getElementById('footer');
+        const shareBtn = document.getElementById('shareBtn');
         
         // Password modal elements
         const passwordModal = document.getElementById('passwordModal');
@@ -671,6 +702,74 @@
         const passwordCancel = document.getElementById('passwordCancel');
         const passwordConfirm = document.getElementById('passwordConfirm');
         
+        // NEW: Encode data to URL
+        function encodeDataToURL() {
+            if (rawData.length > 0 || customerRawData.length > 0) {
+                const dataToShare = {
+                    sales: rawData,
+                    customer: customerRawData,
+                    timestamp: new Date().getTime()
+                };
+                
+                // Compress and encode the data
+                const jsonString = JSON.stringify(dataToShare);
+                const compressed = LZString.compressToEncodedURIComponent(jsonString);
+                
+                // Update URL without reloading
+                const newUrl = window.location.origin + window.location.pathname + '?data=' + compressed;
+                window.history.replaceState({}, '', newUrl);
+                
+                return newUrl;
+            }
+            return window.location.href;
+        }
+
+        // NEW: Decode data from URL
+        function decodeDataFromURL() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const encodedData = urlParams.get('data');
+            
+            if (encodedData) {
+                try {
+                    const jsonString = LZString.decompressFromEncodedURIComponent(encodedData);
+                    const data = JSON.parse(jsonString);
+                    
+                    if (data.sales) {
+                        rawData = data.sales;
+                        localStorage.setItem('salesDashboardData', JSON.stringify(rawData));
+                    }
+                    
+                    if (data.customer) {
+                        customerRawData = data.customer;
+                        localStorage.setItem('customerDashboardData', JSON.stringify(customerRawData));
+                    }
+                    
+                    return true;
+                } catch (error) {
+                    console.error('Error decoding URL data:', error);
+                    return false;
+                }
+            }
+            return false;
+        }
+
+        // NEW: Copy to clipboard function
+        function copyToClipboard(text) {
+            const textarea = document.createElement('textarea');
+            textarea.value = text;
+            document.body.appendChild(textarea);
+            textarea.select();
+            document.execCommand('copy');
+            document.body.removeChild(textarea);
+        }
+
+        // NEW: Share dashboard function
+        function shareDashboard() {
+            const shareUrl = encodeDataToURL();
+            copyToClipboard(shareUrl);
+            alert('Dashboard link copied to clipboard! Send this URL to your client.');
+        }
+
         // Tab switching for upload
         salesTab.addEventListener('click', function() {
             salesTab.classList.add('active');
@@ -705,20 +804,26 @@
             });
         });
         
-        // Check if data exists in localStorage on page load
+        // Check if data exists in localStorage or URL on page load
         document.addEventListener('DOMContentLoaded', function() {
-            const savedData = localStorage.getItem('salesDashboardData');
-            const savedCustomerData = localStorage.getItem('customerDashboardData');
+            // First try to load from URL
+            const hasURLData = decodeDataFromURL();
             
-            if (savedData) {
-                rawData = JSON.parse(savedData);
+            // If no URL data, try localStorage
+            if (!hasURLData) {
+                const savedData = localStorage.getItem('salesDashboardData');
+                const savedCustomerData = localStorage.getItem('customerDashboardData');
+                
+                if (savedData) {
+                    rawData = JSON.parse(savedData);
+                }
+                
+                if (savedCustomerData) {
+                    customerRawData = JSON.parse(savedCustomerData);
+                }
             }
             
-            if (savedCustomerData) {
-                customerRawData = JSON.parse(savedCustomerData);
-            }
-            
-            if (savedData || savedCustomerData) {
+            if (rawData.length > 0 || customerRawData.length > 0) {
                 processData();
                 updateFilters();
                 applyFilters();
@@ -827,7 +932,11 @@
             applyFilters();
             showDashboard();
             previewSection.style.display = 'none';
-            uploadSection.style.display = 'none'; // Hide upload section after dashboard is created
+            uploadSection.style.display = 'none';
+            
+            // NEW: Encode data to URL and show share button
+            encodeDataToURL();
+            shareBtn.style.display = 'block';
         });
         
         // Cancel upload
@@ -1959,6 +2068,10 @@
             dashboardContent.style.display = 'block';
             footer.style.display = 'block';
             noDataMessage.style.display = 'none';
+            uploadSection.style.display = 'none'; // Hide upload section
+            
+            // Show share button
+            shareBtn.style.display = 'block';
             
             // Initialize with overview tab
             updateDashboardForTab();
@@ -1971,6 +2084,7 @@
             footer.style.display = 'block';
             noDataMessage.style.display = 'block';
             uploadSection.style.display = 'block'; // Show upload section when no data
+            shareBtn.style.display = 'none'; // Hide share button when no data
         }
         
         // Format numbers with commas and 0 decimals
@@ -1987,6 +2101,9 @@
         // Event listeners for filters
         monthFilter.addEventListener('change', applyFilters);
         storeFilter.addEventListener('change', applyFilters);
+        
+        // NEW: Share button event listener
+        shareBtn.addEventListener('click', shareDashboard);
         
         // Password protection for clear data
         clearDataBtn.addEventListener('click', function() {
@@ -2021,6 +2138,10 @@
                 salesFileName.textContent = '';
                 customerFileName.textContent = '';
                 passwordModal.style.display = 'none';
+                
+                // Clear URL parameters
+                window.history.replaceState({}, '', window.location.pathname);
+                
                 showNoDataMessage();
             } else {
                 alert('Incorrect security code. Data not cleared.');
