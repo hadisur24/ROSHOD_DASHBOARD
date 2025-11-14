@@ -49,35 +49,29 @@
             opacity: 0.9;
         }
         
-        .share-btn {
+        .data-status {
             position: absolute;
             right: 20px;
-            top: 50%;
-            transform: translateY(-50%);
-            background: rgba(255, 255, 255, 0.2);
-            border: 1px solid rgba(255, 255, 255, 0.3);
+            top: 20px;
+            background: #28a745;
             color: white;
-            padding: 8px 15px;
-            border-radius: 5px;
-            cursor: pointer;
-            font-size: 14px;
-            transition: all 0.3s;
-        }
-        
-        .share-btn:hover {
-            background: rgba(255, 255, 255, 0.3);
+            padding: 5px 10px;
+            border-radius: 15px;
+            font-size: 12px;
+            font-weight: 600;
         }
         
         .upload-section {
-            padding: 20px;
+            padding: 30px;
             border-bottom: 1px solid #eaeaea;
             background-color: #f9fafc;
+            text-align: center;
         }
         
         .upload-container {
             display: flex;
             flex-direction: column;
-            gap: 15px;
+            gap: 20px;
             max-width: 600px;
             margin: 0 auto;
         }
@@ -100,53 +94,60 @@
         
         .file-input-label {
             display: block;
-            padding: 12px 20px;
+            padding: 15px 20px;
             background-color: #2a56c6;
             color: white;
-            border-radius: 5px;
+            border-radius: 8px;
             text-align: center;
             cursor: pointer;
-            transition: background-color 0.3s;
+            transition: all 0.3s;
+            font-size: 16px;
+            font-weight: 500;
         }
         
         .file-input-label:hover {
             background-color: #1a3a8f;
+            transform: translateY(-2px);
         }
         
-        .preview-section {
-            padding: 20px;
-            display: none;
+        .admin-section {
+            background: #fff3cd;
+            border: 2px dashed #ffc107;
+            border-radius: 10px;
+            padding: 25px;
+            margin-top: 20px;
         }
         
-        .preview-table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-top: 10px;
+        .admin-section h3 {
+            color: #856404;
+            margin-bottom: 10px;
         }
         
-        .preview-table th, .preview-table td {
-            border: 1px solid #ddd;
-            padding: 8px;
-            text-align: left;
-        }
-        
-        .preview-table th {
-            background-color: #f2f2f2;
-        }
-        
-        .button-group {
-            display: flex;
-            gap: 10px;
-            margin-top: 15px;
+        .admin-section p {
+            color: #856404;
+            margin-bottom: 15px;
+            font-size: 14px;
         }
         
         .btn {
-            padding: 10px 20px;
+            padding: 12px 25px;
             border: none;
-            border-radius: 5px;
+            border-radius: 6px;
             cursor: pointer;
             font-weight: 500;
             transition: all 0.3s;
+            font-size: 15px;
+        }
+        
+        .btn-admin {
+            background-color: #dc3545;
+            color: white;
+            width: 100%;
+        }
+        
+        .btn-admin:hover {
+            background-color: #c82333;
+            transform: translateY(-2px);
         }
         
         .btn-confirm {
@@ -176,13 +177,32 @@
             background-color: #e0a800;
         }
         
-        .btn-export {
-            background-color: #17a2b8;
-            color: white;
+        .preview-section {
+            padding: 20px;
+            display: none;
         }
         
-        .btn-export:hover {
-            background-color: #138496;
+        .preview-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+        }
+        
+        .preview-table th, .preview-table td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+        }
+        
+        .preview-table th {
+            background-color: #f2f2f2;
+        }
+        
+        .button-group {
+            display: flex;
+            gap: 10px;
+            margin-top: 15px;
+            justify-content: center;
         }
         
         .filters-section {
@@ -341,6 +361,7 @@
             display: flex;
             margin-bottom: 15px;
             border-bottom: 1px solid #ddd;
+            justify-content: center;
         }
         
         .upload-tab {
@@ -412,10 +433,10 @@
                 grid-template-columns: 1fr;
             }
             
-            .share-btn {
+            .data-status {
                 position: static;
-                transform: none;
-                margin-top: 10px;
+                display: inline-block;
+                margin-bottom: 10px;
             }
         }
     </style>
@@ -425,45 +446,39 @@
         <div class="header">
             <h1>ROSHOD SALES DASHBOARD</h1>
             <p>Retail Performance Analytics</p>
-            <button class="share-btn" id="shareBtn" style="display: none;">📤 Share Dashboard</button>
+            <div class="data-status" id="dataStatus" style="display: none;">📊 Live Data Loaded</div>
         </div>
         
         <div class="upload-section" id="uploadSection">
-            <div class="upload-tabs">
-                <div class="upload-tab active" id="salesTab">Sales Data</div>
-                <div class="upload-tab" id="customerTab">Customer Data</div>
-            </div>
-            
             <div class="upload-container">
+                <h2>Roshod Data Management</h2>
+                <p style="color: #666; margin-bottom: 20px;">Upload Excel files to update the company dashboard</p>
+                
+                <div class="upload-tabs">
+                    <div class="upload-tab active" id="salesTab">Sales Data</div>
+                    <div class="upload-tab" id="customerTab">Customer Data</div>
+                </div>
+                
                 <div class="upload-content active" id="salesUpload">
                     <div class="file-input-wrapper">
                         <input type="file" id="salesFileInput" class="file-input" accept=".xlsx, .xls">
-                        <label for="salesFileInput" class="file-input-label">Choose Sales Data Excel File</label>
+                        <label for="salesFileInput" class="file-input-label">📈 Upload Sales Data Excel File</label>
                     </div>
-                    <div id="salesFileName" style="text-align: center; font-size: 14px; color: #666;"></div>
+                    <div id="salesFileName" style="text-align: center; font-size: 14px; color: #666; margin-top: 10px;"></div>
                 </div>
                 
                 <div class="upload-content" id="customerUpload">
                     <div class="file-input-wrapper">
                         <input type="file" id="customerFileInput" class="file-input" accept=".xlsx, .xls">
-                        <label for="customerFileInput" class="file-input-label">Choose Customer Data Excel File</label>
+                        <label for="customerFileInput" class="file-input-label">👥 Upload Customer Data Excel File</label>
                     </div>
-                    <div id="customerFileName" style="text-align: center; font-size: 14px; color: #666;"></div>
+                    <div id="customerFileName" style="text-align: center; font-size: 14px; color: #666; margin-top: 10px;"></div>
                 </div>
                 
-                <!-- Import/Export Section -->
-                <div style="text-align: center; margin: 20px 0; padding: 20px; background: #f8f9fa; border-radius: 8px; display: none;" id="importExportSection">
-                    <h4>Share Dashboard Options</h4>
-                    <div style="display: flex; gap: 10px; justify-content: center; margin-top: 15px; flex-wrap: wrap;">
-                        <button id="exportBtn" class="btn btn-export">Export Data File</button>
-                        <div class="file-input-wrapper" style="display: inline-block; width: auto;">
-                            <input type="file" id="importFileInput" class="file-input" accept=".json">
-                            <label for="importFileInput" class="file-input-label" style="background-color: #17a2b8;">Import Data File</label>
-                        </div>
-                    </div>
-                    <p style="font-size: 12px; margin-top: 10px; color: #666;">
-                        Export data as file to share with clients. They can import it to see the same dashboard.
-                    </p>
+                <div class="admin-section" id="adminSection">
+                    <h3>🔧 Administration</h3>
+                    <p>Upload new data to update the company dashboard. This will replace existing data.</p>
+                    <button id="updateDataBtn" class="btn btn-admin" style="display: none;">Update Company Dashboard</button>
                 </div>
             </div>
         </div>
@@ -472,7 +487,7 @@
             <h3>Data Preview</h3>
             <div id="previewTableContainer"></div>
             <div class="button-group">
-                <button id="confirmBtn" class="btn btn-confirm">Confirm & Create Dashboard</button>
+                <button id="confirmBtn" class="btn btn-confirm">Confirm & Update Dashboard</button>
                 <button id="cancelBtn" class="btn btn-cancel">Cancel</button>
             </div>
         </div>
@@ -492,14 +507,14 @@
                     </select>
                 </div>
                 <div class="filter-group" style="margin-left: auto;">
-                    <button id="clearDataBtn" class="btn btn-clear">Clear Data</button>
+                    <button id="clearDataBtn" class="btn btn-clear">Admin: Clear All Data</button>
                 </div>
             </div>
         </div>
         
         <div class="no-data" id="noDataMessage">
             <h3>No data available</h3>
-            <p>Please upload an Excel file to view the dashboard</p>
+            <p>Please upload Excel files to view the dashboard</p>
         </div>
         
         <div class="dashboard-content" id="dashboardContent">
@@ -715,114 +730,15 @@
         const dashboardContent = document.getElementById('dashboardContent');
         const noDataMessage = document.getElementById('noDataMessage');
         const footer = document.getElementById('footer');
-        const shareBtn = document.getElementById('shareBtn');
-        const importExportSection = document.getElementById('importExportSection');
-        const exportBtn = document.getElementById('exportBtn');
-        const importFileInput = document.getElementById('importFileInput');
+        const dataStatus = document.getElementById('dataStatus');
+        const adminSection = document.getElementById('adminSection');
+        const updateDataBtn = document.getElementById('updateDataBtn');
         
         // Password modal elements
         const passwordModal = document.getElementById('passwordModal');
         const passwordInput = document.getElementById('passwordInput');
         const passwordCancel = document.getElementById('passwordCancel');
         const passwordConfirm = document.getElementById('passwordConfirm');
-        
-        // NEW: Export data as file
-        function exportDashboardData() {
-            if (rawData.length === 0 && customerRawData.length === 0) {
-                alert('No data to export. Please upload Excel files first.');
-                return;
-            }
-            
-            const dashboardData = {
-                sales: rawData,
-                customer: customerRawData,
-                timestamp: new Date().toISOString(),
-                version: '1.0'
-            };
-            
-            const dataStr = JSON.stringify(dashboardData, null, 2);
-            const dataBlob = new Blob([dataStr], {type: 'application/json'});
-            
-            const link = document.createElement('a');
-            link.href = URL.createObjectURL(dataBlob);
-            link.download = `roschod-dashboard-data-${new Date().getTime()}.json`;
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
-            URL.revokeObjectURL(link.href);
-            
-            alert('Dashboard data exported successfully! Send this .json file to your client along with the website URL.');
-        }
-
-        // NEW: Import data from file
-        function importDashboardData(file) {
-            const reader = new FileReader();
-            
-            reader.onload = function(e) {
-                try {
-                    const importedData = JSON.parse(e.target.result);
-                    
-                    if (importedData.sales) {
-                        rawData = importedData.sales;
-                        localStorage.setItem('salesDashboardData', JSON.stringify(rawData));
-                    }
-                    
-                    if (importedData.customer) {
-                        customerRawData = importedData.customer;
-                        localStorage.setItem('customerDashboardData', JSON.stringify(customerRawData));
-                    }
-                    
-                    processData();
-                    updateFilters();
-                    applyFilters();
-                    showDashboard();
-                    
-                    alert('Dashboard data imported successfully!');
-                } catch (error) {
-                    alert('Error importing data: Invalid file format. Please make sure you are importing a valid dashboard data file.');
-                }
-            };
-            
-            reader.readAsText(file);
-        }
-
-        // NEW: Create share instructions modal
-        function createShareInstructions() {
-            const shareModal = document.createElement('div');
-            shareModal.innerHTML = `
-                <div class="password-modal" id="shareModal" style="display: flex;">
-                    <div class="password-modal-content">
-                        <h3>Share Dashboard</h3>
-                        <p>To share this dashboard with others:</p>
-                        <ol style="text-align: left; margin: 15px 0; padding-left: 20px;">
-                            <li>Send them this website address: <br><strong style="word-break: break-all;">${window.location.href.split('?')[0]}</strong></li>
-                            <li>Send them the exported data file (use Export button)</li>
-                            <li>They need to:<br>
-                                - Open the website<br>
-                                - Click "Import Data File"<br>
-                                - Select the data file you sent
-                            </li>
-                        </ol>
-                        <p><em>Note: The data file contains all your dashboard data in a secure format.</em></p>
-                        <div class="password-buttons">
-                            <button id="shareClose" class="btn btn-confirm">OK</button>
-                        </div>
-                    </div>
-                </div>
-            `;
-            document.body.appendChild(shareModal);
-            
-            document.getElementById('shareClose').addEventListener('click', function() {
-                document.getElementById('shareModal').remove();
-            });
-            
-            // Close modal when clicking outside
-            document.getElementById('shareModal').addEventListener('click', function(e) {
-                if (e.target === this) {
-                    this.remove();
-                }
-            });
-        }
 
         // Tab switching for upload
         salesTab.addEventListener('click', function() {
@@ -858,10 +774,10 @@
             });
         });
         
-        // Check if data exists in localStorage on page load
+        // NEW: Load saved company data on page load
         document.addEventListener('DOMContentLoaded', function() {
-            const savedData = localStorage.getItem('salesDashboardData');
-            const savedCustomerData = localStorage.getItem('customerDashboardData');
+            const savedData = localStorage.getItem('companySalesDashboardData');
+            const savedCustomerData = localStorage.getItem('companyCustomerDashboardData');
             
             if (savedData) {
                 rawData = JSON.parse(savedData);
@@ -876,12 +792,20 @@
                 updateFilters();
                 applyFilters();
                 showDashboard();
+                
+                // Show data status
+                dataStatus.style.display = 'block';
+                dataStatus.textContent = '📊 Company Data Loaded';
+                
+                // Show admin section for updates
+                adminSection.style.display = 'block';
+                updateDataBtn.style.display = 'block';
             } else {
                 showNoDataMessage();
+                // Show admin section for initial setup
+                adminSection.style.display = 'block';
+                updateDataBtn.style.display = 'block';
             }
-            
-            // Show import/export section
-            importExportSection.style.display = 'block';
         });
         
         // Handle file uploads
@@ -978,12 +902,15 @@
         // Confirm and create dashboard
         confirmBtn.addEventListener('click', function() {
             processData();
-            saveDataToLocalStorage();
+            saveCompanyData();
             updateFilters();
             applyFilters();
             showDashboard();
             previewSection.style.display = 'none';
             uploadSection.style.display = 'none';
+            
+            // Show success message
+            alert('Company dashboard updated successfully! All clients will now see this data when they visit the website.');
         });
         
         // Cancel upload
@@ -1212,10 +1139,14 @@
             });
         }
         
-        // Save data to localStorage
-        function saveDataToLocalStorage() {
-            localStorage.setItem('salesDashboardData', JSON.stringify(rawData));
-            localStorage.setItem('customerDashboardData', JSON.stringify(customerRawData));
+        // NEW: Save data as company data (for all visitors)
+        function saveCompanyData() {
+            localStorage.setItem('companySalesDashboardData', JSON.stringify(rawData));
+            localStorage.setItem('companyCustomerDashboardData', JSON.stringify(customerRawData));
+            
+            // Update data status
+            dataStatus.style.display = 'block';
+            dataStatus.textContent = '📊 Company Data Loaded';
         }
         
         // Update filter options
@@ -2115,13 +2046,7 @@
             dashboardContent.style.display = 'block';
             footer.style.display = 'block';
             noDataMessage.style.display = 'none';
-            uploadSection.style.display = 'none'; // Hide upload section
-            
-            // Show share button
-            shareBtn.style.display = 'block';
-            
-            // Initialize with overview tab
-            updateDashboardForTab();
+            uploadSection.style.display = 'none';
         }
         
         // Show no data message
@@ -2130,8 +2055,7 @@
             dashboardContent.style.display = 'none';
             footer.style.display = 'block';
             noDataMessage.style.display = 'block';
-            uploadSection.style.display = 'block'; // Show upload section when no data
-            shareBtn.style.display = 'none'; // Hide share button when no data
+            uploadSection.style.display = 'block';
         }
         
         // Format numbers with commas and 0 decimals
@@ -2149,17 +2073,11 @@
         monthFilter.addEventListener('change', applyFilters);
         storeFilter.addEventListener('change', applyFilters);
         
-        // NEW: Share button event listener
-        shareBtn.addEventListener('click', createShareInstructions);
-        
-        // NEW: Export button event listener
-        exportBtn.addEventListener('click', exportDashboardData);
-        
-        // NEW: Import file input event listener
-        importFileInput.addEventListener('change', function(e) {
-            if (e.target.files[0]) {
-                importDashboardData(e.target.files[0]);
-            }
+        // Update Data button
+        updateDataBtn.addEventListener('click', function() {
+            uploadSection.style.display = 'block';
+            dashboardContent.style.display = 'none';
+            filtersSection.style.display = 'none';
         });
         
         // Password protection for clear data
@@ -2175,8 +2093,8 @@
         
         passwordConfirm.addEventListener('click', function() {
             if (passwordInput.value === '19591') {
-                localStorage.removeItem('salesDashboardData');
-                localStorage.removeItem('customerDashboardData');
+                localStorage.removeItem('companySalesDashboardData');
+                localStorage.removeItem('companyCustomerDashboardData');
                 rawData = [];
                 processedData = [];
                 filteredData = [];
@@ -2195,6 +2113,9 @@
                 salesFileName.textContent = '';
                 customerFileName.textContent = '';
                 passwordModal.style.display = 'none';
+                
+                // Hide data status
+                dataStatus.style.display = 'none';
                 
                 showNoDataMessage();
             } else {
