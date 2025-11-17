@@ -290,7 +290,7 @@
         }
         
         .chart-container {
-            background-color: white;
+            background-color: #EFE9E3;
             border-radius: 8px;
             box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
             padding: 20px;
@@ -559,14 +559,7 @@
                         </div>
                     </div>
                     
-                    <!-- Customer Data Charts -->
-                    <div class="chart-container">
-                        <h3>New Customer Trend</h3>
-                        <div class="chart-wrapper">
-                            <canvas id="newCustomerChart"></canvas>
-                        </div>
-                    </div>
-                    
+                    <!-- Customer Data Charts - REARRANGED -->
                     <div class="chart-container">
                         <h3>Eligible vs Unique Customer</h3>
                         <div class="chart-wrapper">
@@ -578,6 +571,14 @@
                         <h3>Customer Conversion Rate</h3>
                         <div class="chart-wrapper">
                             <canvas id="conversionRateChart"></canvas>
+                        </div>
+                    </div>
+                    
+                    <!-- New Customer Chart at the bottom -->
+                    <div class="chart-container">
+                        <h3>New Customer Trend</h3>
+                        <div class="chart-wrapper">
+                            <canvas id="newCustomerChart"></canvas>
                         </div>
                     </div>
                 </div>
@@ -641,13 +642,7 @@
                 </div>
                 
                 <div class="charts-grid">
-                    <div class="chart-container">
-                        <h3>New Customer Trend</h3>
-                        <div class="chart-wrapper">
-                            <canvas id="newCustomerChartSegment"></canvas>
-                        </div>
-                    </div>
-                    
+                    <!-- REARRANGED: Eligible and Unique charts in same row, New Customer at bottom -->
                     <div class="chart-container">
                         <h3>Eligible vs Unique Customer</h3>
                         <div class="chart-wrapper">
@@ -659,6 +654,13 @@
                         <h3>Customer Conversion Rate</h3>
                         <div class="chart-wrapper">
                             <canvas id="conversionRateChartSegment"></canvas>
+                        </div>
+                    </div>
+                    
+                    <div class="chart-container">
+                        <h3>New Customer Trend</h3>
+                        <div class="chart-wrapper">
+                            <canvas id="newCustomerChartSegment"></canvas>
                         </div>
                     </div>
                 </div>
@@ -726,7 +728,7 @@
         const passwordCancel = document.getElementById('passwordCancel');
         const passwordConfirm = document.getElementById('passwordConfirm');
         
-        // NEW: Export data as file
+        // Export data as file
         function exportDashboardData() {
             if (rawData.length === 0 && customerRawData.length === 0) {
                 alert('No data to export. Please upload Excel files first.');
@@ -754,7 +756,7 @@
             alert('Dashboard data exported successfully! Send this .json file to your client along with the website URL.');
         }
 
-        // NEW: Import data from file
+        // Import data from file
         function importDashboardData(file) {
             const reader = new FileReader();
             
@@ -786,7 +788,7 @@
             reader.readAsText(file);
         }
 
-        // NEW: Create share instructions modal
+        // Create share instructions modal
         function createShareInstructions() {
             const shareModal = document.createElement('div');
             shareModal.innerHTML = `
@@ -1549,9 +1551,11 @@
             
             // Create customer charts
             const suffix = tab === 'overview' ? '' : 'Segment';
-            createNewCustomerChart(customerMonths, newCustomerData, `newCustomerChart${suffix}`);
+            
+            // REARRANGED: Create comparison chart first, then conversion rate, then new customer chart
             createCustomerComparisonChart(customerMonths, eligibleCustomerData, uniqueCustomerData, `customerComparisonChart${suffix}`);
             createConversionRateChart(customerMonths, conversionRateData, `conversionRateChart${suffix}`);
+            createNewCustomerChart(customerMonths, newCustomerData, `newCustomerChart${suffix}`);
         }
         
         // Calculate growth rates
@@ -1566,7 +1570,7 @@
             return growthRates;
         }
         
-        // Chart creation functions (same as before but with chartId parameter)
+        // Chart creation functions
         function createSalesChart(months, salesData, chartId) {
             const ctx = document.getElementById(chartId).getContext('2d');
             charts[chartId] = new Chart(ctx, {
@@ -1977,6 +1981,7 @@
             });
         }
         
+        // UPDATED: Customer comparison chart now shows both Eligible and Unique as bars
         function createCustomerComparisonChart(months, eligibleCustomerData, uniqueCustomerData, chartId) {
             const ctx = document.getElementById(chartId).getContext('2d');
             charts[chartId] = new Chart(ctx, {
@@ -1989,21 +1994,14 @@
                             data: eligibleCustomerData,
                             backgroundColor: 'rgba(75, 192, 192, 0.7)',
                             borderColor: 'rgba(75, 192, 192, 1)',
-                            borderWidth: 1,
-                            yAxisID: 'y'
+                            borderWidth: 1
                         },
                         {
                             label: 'Unique Customers',
                             data: uniqueCustomerData,
-                            type: 'line',
+                            backgroundColor: 'rgba(153, 102, 255, 0.7)',
                             borderColor: 'rgba(153, 102, 255, 1)',
-                            borderWidth: 2,
-                            fill: false,
-                            tension: 0.3,
-                            yAxisID: 'y1',
-                            datalabels: {
-                                display: false
-                            }
+                            borderWidth: 1
                         }
                     ]
                 },
@@ -2011,38 +2009,28 @@
                     responsive: true,
                     maintainAspectRatio: false,
                     plugins: {
+                        datalabels: {
+                            anchor: 'end',
+                            align: 'top',
+                            formatter: function(value) {
+                                return Math.round(value).toLocaleString('en-IN');
+                            },
+                            color: '#333',
+                            font: {
+                                weight: 'bold'
+                            }
+                        },
                         tooltip: {
                             callbacks: {
                                 label: function(context) {
-                                    if (context.dataset.label === 'Eligible Customers') {
-                                        return `Eligible: ${Math.round(context.raw).toLocaleString('en-IN')}`;
-                                    } else {
-                                        return `Unique: ${Math.round(context.raw).toLocaleString('en-IN')}`;
-                                    }
+                                    return `${context.dataset.label}: ${Math.round(context.raw).toLocaleString('en-IN')}`;
                                 }
                             }
                         }
                     },
                     scales: {
                         y: {
-                            type: 'linear',
-                            display: true,
-                            position: 'left',
                             beginAtZero: true,
-                            ticks: {
-                                callback: function(value) {
-                                    return Math.round(value).toLocaleString('en-IN');
-                                }
-                            }
-                        },
-                        y1: {
-                            type: 'linear',
-                            display: true,
-                            position: 'right',
-                            beginAtZero: true,
-                            grid: {
-                                drawOnChartArea: false,
-                            },
                             ticks: {
                                 callback: function(value) {
                                     return Math.round(value).toLocaleString('en-IN');
@@ -2149,13 +2137,13 @@
         monthFilter.addEventListener('change', applyFilters);
         storeFilter.addEventListener('change', applyFilters);
         
-        // NEW: Share button event listener
+        // Share button event listener
         shareBtn.addEventListener('click', createShareInstructions);
         
-        // NEW: Export button event listener
+        // Export button event listener
         exportBtn.addEventListener('click', exportDashboardData);
         
-        // NEW: Import file input event listener
+        // Import file input event listener
         importFileInput.addEventListener('change', function(e) {
             if (e.target.files[0]) {
                 importDashboardData(e.target.files[0]);
