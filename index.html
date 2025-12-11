@@ -3,11 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ROSHOD SALES DASHBOARD</title>
+    <title>ROSHOD SALES DASHBOARD - Login</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.0.0"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.0/papaparse.min.js"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
@@ -23,8 +24,108 @@
             background-color: #f5f7fa;
             color: #333;
             padding: 20px;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
         
+        /* Login Container */
+        .login-container {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+            width: 100%;
+            max-width: 420px;
+            padding: 40px;
+            text-align: center;
+        }
+        
+        .login-header {
+            margin-bottom: 30px;
+        }
+        
+        .login-header h1 {
+            font-size: 24px;
+            font-weight: 700;
+            color: #1a3a8f;
+            margin-bottom: 8px;
+        }
+        
+        .login-header p {
+            font-size: 14px;
+            color: #64748b;
+        }
+        
+        .login-icon {
+            width: 80px;
+            height: 80px;
+            background: linear-gradient(135deg, #1a3a8f, #2a56c6);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 20px;
+            color: white;
+            font-size: 32px;
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+            text-align: left;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 6px;
+            font-weight: 500;
+            color: #475569;
+            font-size: 14px;
+        }
+        
+        .form-control {
+            width: 100%;
+            padding: 12px 16px;
+            border: 2px solid #e2e8f0;
+            border-radius: 8px;
+            font-size: 14px;
+            transition: all 0.2s;
+        }
+        
+        .form-control:focus {
+            border-color: #2a56c6;
+            box-shadow: 0 0 0 3px rgba(42, 86, 198, 0.1);
+            outline: none;
+        }
+        
+        .login-btn {
+            width: 100%;
+            padding: 14px;
+            background: linear-gradient(135deg, #1a3a8f, #2a56c6);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-weight: 500;
+            font-size: 16px;
+            cursor: pointer;
+            transition: all 0.3s;
+            margin-top: 10px;
+        }
+        
+        .login-btn:hover {
+            background: linear-gradient(135deg, #2a56c6, #3a66d6);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(26, 58, 143, 0.2);
+        }
+        
+        .login-error {
+            color: #ef4444;
+            font-size: 14px;
+            margin-top: 10px;
+            display: none;
+        }
+        
+        /* Dashboard Container (Initially Hidden) */
         .dashboard-container {
             max-width: 1400px;
             margin: 0 auto;
@@ -32,6 +133,8 @@
             border-radius: 12px;
             box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
             overflow: hidden;
+            display: none;
+            width: 100%;
         }
         
         .header {
@@ -543,6 +646,86 @@
             font-size: 32px;
         }
         
+        .refresh-section {
+            padding: 15px;
+            background: #f1f5f9;
+            border-radius: 8px;
+            margin-top: 15px;
+            display: none;
+        }
+        
+        .refresh-toggle {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+        
+        .refresh-settings {
+            display: none;
+            margin-top: 10px;
+            padding-top: 10px;
+            border-top: 1px solid #e2e8f0;
+        }
+        
+        .refresh-badge {
+            background: #10b981;
+            color: white;
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 500;
+            margin-left: 8px;
+        }
+        
+        .notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: #10b981;
+            color: white;
+            padding: 12px 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            z-index: 9999;
+            animation: slideIn 0.3s ease;
+            display: none;
+        }
+        
+        @keyframes slideIn {
+            from { transform: translateX(100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+        
+        @keyframes slideOut {
+            from { transform: translateX(0); opacity: 1; }
+            to { transform: translateX(100%); opacity: 0; }
+        }
+        
+        .logout-btn {
+            position: absolute;
+            left: 24px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: rgba(255, 255, 255, 0.15);
+            border: 1px solid rgba(255, 255, 255, 0.25);
+            color: white;
+            padding: 10px 18px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        
+        .logout-btn:hover {
+            background: rgba(255, 255, 255, 0.25);
+            transform: translateY(-50%) scale(1.03);
+        }
+        
         @media (max-width: 1024px) {
             .metrics-grid, .charts-grid {
                 grid-template-columns: 1fr;
@@ -568,6 +751,14 @@
             .filter-select {
                 width: 100%;
             }
+            
+            .logout-btn {
+                position: static;
+                transform: none;
+                margin-top: 16px;
+                width: 100%;
+                justify-content: center;
+            }
         }
         
         @media (max-width: 768px) {
@@ -583,12 +774,53 @@
                 width: 100%;
                 justify-content: center;
             }
+            
+            .login-container {
+                padding: 30px 20px;
+                margin: 20px;
+            }
         }
     </style>
 </head>
 <body>
-    <div class="dashboard-container">
+    <!-- Login Container -->
+    <div class="login-container" id="loginContainer">
+        <div class="login-icon">🔒</div>
+        <div class="login-header">
+            <h1>ROSHOD SALES DASHBOARD</h1>
+            <p>Retail Performance Analytics</p>
+        </div>
+        
+        <form id="loginForm">
+            <div class="form-group">
+                <label for="username">Username</label>
+                <input type="text" id="username" class="form-control" placeholder="Enter username" required>
+            </div>
+            
+            <div class="form-group">
+                <label for="password">Password</label>
+                <input type="password" id="password" class="form-control" placeholder="Enter password" required>
+            </div>
+            
+            <div class="login-error" id="loginError">
+                Invalid username or password. Please try again.
+            </div>
+            
+            <button type="submit" class="login-btn">Login to Dashboard</button>
+           
+        </form>
+    </div>
+
+    <!-- Dashboard Container (Hidden by default) -->
+    <div class="dashboard-container" id="dashboardContainer">
         <div class="header">
+            <button class="logout-btn" id="logoutBtn">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
+                    <path fill-rule="evenodd" d="M10 12.5a.5.5 0 0 1-.5.5h-8a.5.5 0 0 1-.5-.5v-9a.5.5 0 0 1 .5-.5h8a.5.5 0 0 1 .5.5v2a.5.5 0 0 0 1 0v-2A1.5 1.5 0 0 0 9.5 2h-8A1.5 1.5 0 0 0 0 3.5v9A1.5 1.5 0 0 0 1.5 14h8a1.5 1.5 0 0 0 1.5-1.5v-2a.5.5 0 0 0-1 0v2z"/>
+                    <path fill-rule="evenodd" d="M15.854 8.354a.5.5 0 0 0 0-.708l-3-3a.5.5 0 0 0-.708.708L14.293 7.5H5.5a.5.5 0 0 0 0 1h8.793l-2.147 2.146a.5.5 0 0 0 .708.708l3-3z"/>
+                </svg>
+                Logout
+            </button>
             <h1>ROSHOD SALES DASHBOARD</h1>
             <p>Retail Performance Analytics</p>
             <button class="share-btn" id="shareBtn" style="display: none;">
@@ -604,9 +836,11 @@
             <div class="upload-tabs">
                 <div class="upload-tab active" id="salesTab">Sales Data</div>
                 <div class="upload-tab" id="customerTab">Customer Data</div>
+                <div class="upload-tab" id="googleSheetsTab">Google Sheets</div>
             </div>
             
             <div class="upload-container">
+                <!-- Sales Data Upload -->
                 <div class="upload-content active" id="salesUpload">
                     <div class="file-input-wrapper">
                         <input type="file" id="salesFileInput" class="file-input" accept=".xlsx, .xls">
@@ -615,12 +849,83 @@
                     <div id="salesFileName" style="text-align: center; font-size: 14px; color: #64748b; margin-top: 12px;"></div>
                 </div>
                 
+                <!-- Customer Data Upload -->
                 <div class="upload-content" id="customerUpload">
                     <div class="file-input-wrapper">
                         <input type="file" id="customerFileInput" class="file-input" accept=".xlsx, .xls">
                         <label for="customerFileInput" class="file-input-label">Choose Customer Data Excel File</label>
                     </div>
                     <div id="customerFileName" style="text-align: center; font-size: 14px; color: #64748b; margin-top: 12px;"></div>
+                </div>
+                
+                <!-- Google Sheets Upload -->
+                <div class="upload-content" id="googleSheetsUpload">
+                    <div style="text-align: center; margin-bottom: 20px;">
+                        <h3 style="color: #1a3a8f; margin-bottom: 10px;">Your Pre-configured Google Sheets</h3>
+                        <p style="color: #64748b; font-size: 14px;">These sheets are already set up. Just click the buttons below:</p>
+                    </div>
+                    
+                    <div style="display: flex; gap: 10px; margin-bottom: 20px;">
+                        <button id="loadSalesSheet" class="btn" style="flex: 1; background: linear-gradient(135deg, #1a3a8f, #2a56c6); color: white; padding: 15px;">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="currentColor" viewBox="0 0 16 16" style="margin-right: 8px;">
+                                <path d="M2 2a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V2zm2 .5v2a.5.5 0 0 0 .5.5h7a.5.5 0 0 0 .5-.5v-2a.5.5 0 0 0-.5-.5h-7a.5.5 0 0 0-.5.5zm0 4v1a.5.5 0 0 0 .5.5h1a.5.5 0 0 0 .5-.5v-1a.5.5 0 0 0-.5-.5h-1a.5.5 0 0 0-.5.5zm0 3v1a.5.5 0 0 0 .5.5h1a.5.5 0 0 0 .5-.5v-1a.5.5 0 0 0-.5-.5h-1a.5.5 0 0 0-.5.5zm0 3v1a.5.5 0 0 0 .5.5h1a.5.5 0 0 0 .5-.5v-1a.5.5 0 0 0-.5-.5h-1a.5.5 0 0 0-.5.5zm3-6v1a.5.5 0 0 0 .5.5h1a.5.5 0 0 0 .5-.5v-1a.5.5 0 0 0-.5-.5h-1a.5.5 0 0 0-.5.5zm0 3v1a.5.5 0 0 0 .5.5h1a.5.5 0 0 0 .5-.5v-1a.5.5 0 0 0-.5-.5h-1a.5.5 0 0 0-.5.5zm0 3v1a.5.5 0 0 0 .5.5h1a.5.5 0 0 0 .5-.5v-1a.5.5 0 0 0-.5-.5h-1a.5.5 0 0 0-.5.5zm3-6v1a.5.5 0 0 0 .5.5h1a.5.5 0 0 0 .5-.5v-1a.5.5 0 0 0-.5-.5h-1a.5.5 0 0 0-.5.5zm0 3v1a.5.5 0 0 0 .5.5h1a.5.5 0 0 0 .5-.5v-1a.5.5 0 0 0-.5-.5h-1a.5.5 0 0 0-.5.5zm0 3v1a.5.5 0 0 0 .5.5h1a.5.5 0 0 0 .5-.5v-1a.5.5 0 0 0-.5-.5h-1a.5.5 0 0 0-.5.5z"/>
+                            </svg>
+                            Load Sales Data
+                        </button>
+                        <button id="loadCustomerSheet" class="btn" style="flex: 1; background: linear-gradient(135deg, #10b981, #34d399); color: white; padding: 15px;">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="currentColor" viewBox="0 0 16 16" style="margin-right: 8px;">
+                                <path d="M3 14s-1 0-1-1 1-4 6-4 6 3 6 4-1 1-1 1H3zm5-6a3 3 0 1 0 0-6 3 3 0 0 0 0 6z"/>
+                            </svg>
+                            Load Customer Data
+                        </button>
+                    </div>
+                    
+                    <div style="background: #f0f9ff; padding: 15px; border-radius: 8px; margin-bottom: 20px; border: 1px solid #bae6fd;">
+                        <h4 style="margin-bottom: 8px; font-size: 14px; color: #0369a1;">Auto-load feature:</h4>
+                        <p style="font-size: 13px; color: #0c4a6e; margin-bottom: 10px;">
+                            Dashboard will automatically try to load data from your Google Sheets on page load.
+                        </p>
+                        <p style="font-size: 12px; color: #0c4a6e;">
+                            <strong>Note:</strong> Sheets must be shared as "Anyone with the link can view"
+                        </p>
+                    </div>
+                    
+                    <div id="sheetStatus" style="text-align: center; font-size: 14px; color: #64748b; margin-top: 12px; min-height: 20px;"></div>
+                    
+                    <button id="sheetsGuideBtn" class="btn" style="margin-top: 10px; width: 100%; background: linear-gradient(135deg, #8b5cf6, #a78bfa); color: white;">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
+                            <path d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14zm0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16z"/>
+                            <path d="m8.93 6.588-2.29.287-.082.38.45.083c.294.07.352.176.288.469l-.738 3.468c-.194.897.105 1.319.808 1.319.545 0 1.178-.252 1.465-.598l.088-.416c-.2.176-.492.246-.686.246-.275 0-.375-.193-.304-.533L8.93 6.588zM9 4.5a1 1 0 1 1-2 0 1 1 0 0 1 2 0z"/>
+                        </svg>
+                        Google Sheets Guide
+                    </button>
+                </div>
+                
+                <!-- Auto-Refresh Section -->
+                <div class="refresh-section" id="autoRefreshSection">
+                    <div class="refresh-toggle">
+                        <div>
+                            <span style="font-weight: 500; color: #1e293b;">Auto-Refresh:</span>
+                            <span id="refreshStatus" style="font-size: 13px; color: #64748b; margin-left: 10px;">Off</span>
+                            <span id="refreshBadge" class="refresh-badge" style="display: none;">Live</span>
+                        </div>
+                        <button id="toggleRefreshBtn" class="btn" style="background: linear-gradient(135deg, #0ea5e9, #38bdf8); color: white; padding: 8px 16px; font-size: 13px;">
+                            Enable Auto-Refresh
+                        </button>
+                    </div>
+                    <div id="refreshSettings" class="refresh-settings">
+                        <div style="display: flex; gap: 10px; align-items: center; margin-top: 10px;">
+                            <span style="font-size: 13px; color: #475569;">Refresh every:</span>
+                            <select id="refreshInterval" class="filter-select" style="width: 120px; font-size: 13px;">
+                                <option value="5">5 minutes</option>
+                                <option value="15" selected>15 minutes</option>
+                                <option value="30">30 minutes</option>
+                                <option value="60">60 minutes</option>
+                            </select>
+                            <button id="saveRefreshBtn" class="btn btn-confirm" style="padding: 8px 16px; font-size: 13px;">Save</button>
+                        </div>
+                        <p style="font-size: 12px; color: #64748b; margin-top: 8px;">Dashboard will automatically check for updates in your Google Sheets</p>
+                    </div>
                 </div>
                 
                 <!-- Import/Export Section -->
@@ -701,7 +1006,7 @@
         <div class="no-data" id="noDataMessage">
             <div class="no-data-icon">📊</div>
             <h3>No data available</h3>
-            <p>Please upload an Excel file to view the dashboard</p>
+            <p>Please upload an Excel file or connect to Google Sheets to view the dashboard</p>
         </div>
         
         <div class="dashboard-content" id="dashboardContent">
@@ -887,7 +1192,23 @@
         </div>
     </div>
 
+    <!-- Notification -->
+    <div class="notification" id="notification">
+        <div style="display: flex; align-items: center; gap: 10px;">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" viewBox="0 0 16 16">
+                <path d="M12.736 3.97a.733.733 0 0 1 1.047 0c.286.289.29.756.01 1.05L7.88 12.01a.733.733 0 0 1-1.065.02L3.217 8.384a.757.757 0 0 1 0-1.06.733.733 0 0 1 1.047 0l3.052 3.093 5.4-6.425a.247.247 0 0 1 .02-.022Z"/>
+            </svg>
+            <span id="notificationText"></span>
+        </div>
+    </div>
+
     <script>
+        // Login credentials
+        const LOGIN_CREDENTIALS = {
+            username: "RSD",
+            password: "321"
+        };
+
         // Global variables
         let rawData = [];
         let processedData = [];
@@ -897,8 +1218,29 @@
         let filteredCustomerData = [];
         let charts = {};
         let activeTab = 'overview';
+        let googleSheetsConfig = {
+            salesSheetUrl: null,
+            customerSheetUrl: null,
+            autoRefresh: false,
+            refreshInterval: 15, // minutes
+            lastRefresh: null
+        };
+        let refreshTimer = null;
+        
+        // Your NEW Google Sheets URLs (updated with your final links)
+        const SALES_SHEET_URL = "https://docs.google.com/spreadsheets/d/1a_iN-eHi4LGc4L2B63zGFzb8xsFvlqe5ApUccKn0TDE/edit?usp=sharing";
+        const CUSTOMER_SHEET_URL = "https://docs.google.com/spreadsheets/d/1bCuymcxMTbBljhVcJV45bd6iTHeU5rPY18VyCGlyt-I/edit?usp=sharing";
+        
+        // Extract sheet IDs from URLs
+        const SALES_SHEET_ID = "1a_iN-eHi4LGc4L2B63zGFzb8xsFvlqe5ApUccKn0TDE";
+        const CUSTOMER_SHEET_ID = "1bCuymcxMTbBljhVcJV45bd6iTHeU5rPY18VyCGlyt-I";
         
         // DOM elements
+        const loginContainer = document.getElementById('loginContainer');
+        const loginForm = document.getElementById('loginForm');
+        const loginError = document.getElementById('loginError');
+        const dashboardContainer = document.getElementById('dashboardContainer');
+        const logoutBtn = document.getElementById('logoutBtn');
         const uploadSection = document.getElementById('uploadSection');
         const salesFileInput = document.getElementById('salesFileInput');
         const customerFileInput = document.getElementById('customerFileInput');
@@ -906,8 +1248,10 @@
         const customerFileName = document.getElementById('customerFileName');
         const salesTab = document.getElementById('salesTab');
         const customerTab = document.getElementById('customerTab');
+        const googleSheetsTab = document.getElementById('googleSheetsTab');
         const salesUpload = document.getElementById('salesUpload');
         const customerUpload = document.getElementById('customerUpload');
+        const googleSheetsUpload = document.getElementById('googleSheetsUpload');
         const previewSection = document.getElementById('previewSection');
         const previewTableContainer = document.getElementById('previewTableContainer');
         const confirmBtn = document.getElementById('confirmBtn');
@@ -924,22 +1268,494 @@
         const exportBtn = document.getElementById('exportBtn');
         const importFileInput = document.getElementById('importFileInput');
         
+        // Google Sheets elements
+        const loadSalesSheet = document.getElementById('loadSalesSheet');
+        const loadCustomerSheet = document.getElementById('loadCustomerSheet');
+        const sheetStatus = document.getElementById('sheetStatus');
+        const sheetsGuideBtn = document.getElementById('sheetsGuideBtn');
+        
+        // Auto-refresh elements
+        const autoRefreshSection = document.getElementById('autoRefreshSection');
+        const toggleRefreshBtn = document.getElementById('toggleRefreshBtn');
+        const refreshSettings = document.getElementById('refreshSettings');
+        const refreshInterval = document.getElementById('refreshInterval');
+        const saveRefreshBtn = document.getElementById('saveRefreshBtn');
+        const refreshStatus = document.getElementById('refreshStatus');
+        const refreshBadge = document.getElementById('refreshBadge');
+        
         // Password modal elements
         const passwordModal = document.getElementById('passwordModal');
         const passwordInput = document.getElementById('passwordInput');
         const passwordCancel = document.getElementById('passwordCancel');
         const passwordConfirm = document.getElementById('passwordConfirm');
         
+        // Notification element
+        const notification = document.getElementById('notification');
+        const notificationText = document.getElementById('notificationText');
+        
+        // Check if user is already logged in
+        function checkLoginStatus() {
+            const isLoggedIn = sessionStorage.getItem('isLoggedIn');
+            if (isLoggedIn === 'true') {
+                showDashboard();
+            } else {
+                showLogin();
+            }
+        }
+        
+        // Show login page
+        function showLogin() {
+            loginContainer.style.display = 'block';
+            dashboardContainer.style.display = 'none';
+        }
+        
+        // Show dashboard
+        function showDashboard() {
+            loginContainer.style.display = 'none';
+            dashboardContainer.style.display = 'block';
+            
+            // Initialize dashboard if not already initialized
+            if (rawData.length > 0 || customerRawData.length > 0) {
+                processData();
+                updateFilters();
+                applyFilters();
+                showDashboardContent();
+            } else {
+                showNoDataMessage();
+            }
+            
+            showNotification('Welcome to ROSHOD Sales Dashboard!', 'success');
+        }
+        
+        // Login function
+        function handleLogin(event) {
+            event.preventDefault();
+            
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+            
+            if (username === LOGIN_CREDENTIALS.username && password === LOGIN_CREDENTIALS.password) {
+                // Successful login
+                sessionStorage.setItem('isLoggedIn', 'true');
+                loginError.style.display = 'none';
+                showDashboard();
+            } else {
+                // Failed login
+                loginError.style.display = 'block';
+                document.getElementById('password').value = '';
+                document.getElementById('password').focus();
+            }
+        }
+        
+        // Logout function
+        function handleLogout() {
+            sessionStorage.removeItem('isLoggedIn');
+            showLogin();
+            
+            // Clear form
+            document.getElementById('username').value = '';
+            document.getElementById('password').value = '';
+            loginError.style.display = 'none';
+        }
+        
+        // Show notification
+        function showNotification(message, type = 'success') {
+            notificationText.textContent = message;
+            
+            if (type === 'success') {
+                notification.style.background = '#10b981';
+            } else if (type === 'error') {
+                notification.style.background = '#ef4444';
+            } else if (type === 'warning') {
+                notification.style.background = '#f59e0b';
+            } else if (type === 'info') {
+                notification.style.background = '#0ea5e9';
+            }
+            
+            notification.style.display = 'flex';
+            
+            setTimeout(() => {
+                notification.style.animation = 'slideOut 0.3s ease';
+                setTimeout(() => {
+                    notification.style.display = 'none';
+                    notification.style.animation = 'slideIn 0.3s ease';
+                }, 300);
+            }, 3000);
+        }
+        
+        // Extract Google Sheet ID from URL
+        function extractSheetId(url) {
+            try {
+                // Pattern for Google Sheets URL
+                const patterns = [
+                    /\/spreadsheets\/d\/([a-zA-Z0-9-_]+)/,
+                    /\/d\/([a-zA-Z0-9-_]+)/,
+                    /key=([a-zA-Z0-9-_]+)/,
+                    /([a-zA-Z0-9-_]{44})/ // Standard Sheet ID length
+                ];
+                
+                for (const pattern of patterns) {
+                    const match = url.match(pattern);
+                    if (match && match[1]) return match[1];
+                }
+                
+                // If no pattern matches, try to extract from the full URL
+                const urlParts = url.split('/');
+                for (let i = 0; i < urlParts.length; i++) {
+                    if (urlParts[i] === 'd' && i + 1 < urlParts.length) {
+                        const potentialId = urlParts[i + 1];
+                        if (potentialId && potentialId.length > 10) {
+                            return potentialId.split('?')[0]; // Remove query parameters
+                        }
+                    }
+                }
+                
+                return null;
+            } catch (e) {
+                console.error('Error extracting sheet ID:', e);
+                return null;
+            }
+        }
+        
+        // Load data from Google Sheets using the opensheet service
+        async function loadDataFromGoogleSheets(sheetUrl, dataType = 'sales') {
+            try {
+                sheetStatus.textContent = `Loading ${dataType} data from Google Sheets...`;
+                sheetStatus.style.color = '#f59e0b';
+                
+                // Extract sheet ID from URL
+                let sheetId = extractSheetId(sheetUrl);
+                if (!sheetId) {
+                    // If extraction fails, use the direct IDs
+                    sheetId = dataType === 'sales' ? SALES_SHEET_ID : CUSTOMER_SHEET_ID;
+                }
+                
+                console.log(`Loading ${dataType} data from sheet ID:`, sheetId);
+                
+                // Method 1: Use opensheet.elk.sh service (works for publicly shared sheets)
+                const opensheetUrl = `https://opensheet.elk.sh/${sheetId}/1`;
+                
+                const response = await fetch(opensheetUrl, {
+                    headers: {
+                        'Accept': 'application/json',
+                        'Content-Type': 'application/json'
+                    }
+                });
+                
+                if (!response.ok) {
+                    throw new Error(`Failed to fetch data (${response.status})`);
+                }
+                
+                const data = await response.json();
+                
+                if (!data || data.length === 0) {
+                    throw new Error('No data found in sheet');
+                }
+                
+                console.log(`Successfully loaded ${data.length} rows of ${dataType} data`);
+                
+                sheetStatus.textContent = `✓ ${data.length} rows of ${dataType} data loaded!`;
+                sheetStatus.style.color = '#10b981';
+                
+                // Process the data based on type
+                if (dataType === 'sales') {
+                    rawData = data;
+                    googleSheetsConfig.salesSheetUrl = sheetUrl;
+                    localStorage.setItem('salesSheetConfig', JSON.stringify({ 
+                        url: sheetUrl, 
+                        dataType,
+                        timestamp: new Date().toISOString(),
+                        method: 'opensheet'
+                    }));
+                    localStorage.setItem('salesDashboardData', JSON.stringify(rawData));
+                    showNotification('Sales data loaded from Google Sheets!', 'success');
+                } else {
+                    customerRawData = data;
+                    googleSheetsConfig.customerSheetUrl = sheetUrl;
+                    localStorage.setItem('customerSheetConfig', JSON.stringify({ 
+                        url: sheetUrl, 
+                        dataType,
+                        timestamp: new Date().toISOString(),
+                        method: 'opensheet'
+                    }));
+                    localStorage.setItem('customerDashboardData', JSON.stringify(customerRawData));
+                    showNotification('Customer data loaded from Google Sheets!', 'success');
+                }
+                
+                // Show auto-refresh section
+                autoRefreshSection.style.display = 'block';
+                
+                // Show preview
+                showPreview(data);
+                previewSection.style.display = 'block';
+                
+                return data;
+                
+            } catch (error) {
+                console.error(`Error loading ${dataType} data from Google Sheet:`, error);
+                
+                // Try alternative CSV method
+                try {
+                    const sheetId = extractSheetId(sheetUrl) || (dataType === 'sales' ? SALES_SHEET_ID : CUSTOMER_SHEET_ID);
+                    const csvUrl = `https://docs.google.com/spreadsheets/d/${sheetId}/gviz/tq?tqx=out:csv`;
+                    
+                    sheetStatus.textContent = 'Trying alternative method...';
+                    
+                    const csvResponse = await fetch(csvUrl);
+                    if (csvResponse.ok) {
+                        const csvText = await csvResponse.text();
+                        
+                        // Parse CSV using PapaParse
+                        const parsed = Papa.parse(csvText, {
+                            header: true,
+                            skipEmptyLines: true,
+                            transform: (value) => {
+                                if (value === '' || value === null || value === undefined) return '';
+                                return String(value).trim();
+                            }
+                        });
+                        
+                        const data = parsed.data.filter(row => {
+                            return Object.values(row).some(val => val !== '');
+                        });
+                        
+                        if (data.length > 0) {
+                            sheetStatus.textContent = `✓ ${data.length} rows loaded via CSV!`;
+                            sheetStatus.style.color = '#10b981';
+                            
+                            if (dataType === 'sales') {
+                                rawData = data;
+                                googleSheetsConfig.salesSheetUrl = sheetUrl;
+                                localStorage.setItem('salesSheetConfig', JSON.stringify({ url: sheetUrl, dataType }));
+                            } else {
+                                customerRawData = data;
+                                googleSheetsConfig.customerSheetUrl = sheetUrl;
+                                localStorage.setItem('customerSheetConfig', JSON.stringify({ url: sheetUrl, dataType }));
+                            }
+                            
+                            autoRefreshSection.style.display = 'block';
+                            showPreview(data);
+                            previewSection.style.display = 'block';
+                            showNotification('Data loaded via CSV!', 'success');
+                            return data;
+                        }
+                    }
+                } catch (csvError) {
+                    console.error('CSV method also failed:', csvError);
+                }
+                
+                sheetStatus.textContent = `✗ Error: ${error.message}`;
+                sheetStatus.style.color = '#ef4444';
+                
+                showNotification(`Failed to load ${dataType} data. Please ensure sheet is shared publicly.`, 'error');
+                
+                // Show help instructions
+                setTimeout(() => {
+                    showGoogleSheetsInstructions(true);
+                }, 1000);
+                
+                return null;
+            }
+        }
+        
+        // Auto-refresh setup
+        function setupAutoRefresh() {
+            // Load saved settings
+            const savedConfig = localStorage.getItem('googleSheetsConfig');
+            if (savedConfig) {
+                googleSheetsConfig = JSON.parse(savedConfig);
+                
+                if (googleSheetsConfig.autoRefresh) {
+                    refreshSettings.style.display = 'block';
+                    toggleRefreshBtn.textContent = 'Disable Auto-Refresh';
+                    refreshStatus.textContent = 'On (every ' + googleSheetsConfig.refreshInterval + ' minutes)';
+                    refreshBadge.style.display = 'inline-block';
+                    refreshInterval.value = googleSheetsConfig.refreshInterval.toString();
+                    startAutoRefresh();
+                }
+            }
+        }
+        
+        function startAutoRefresh() {
+            if (refreshTimer) {
+                clearInterval(refreshTimer);
+            }
+            
+            const interval = googleSheetsConfig.refreshInterval * 60 * 1000; // Convert to milliseconds
+            
+            refreshTimer = setInterval(async () => {
+                console.log('Auto-refreshing Google Sheets data...');
+                googleSheetsConfig.lastRefresh = new Date().toISOString();
+                localStorage.setItem('googleSheetsConfig', JSON.stringify(googleSheetsConfig));
+                
+                // Refresh sales data if configured
+                if (googleSheetsConfig.salesSheetUrl) {
+                    try {
+                        const salesConfig = JSON.parse(localStorage.getItem('salesSheetConfig') || '{}');
+                        await loadDataFromGoogleSheets(
+                            googleSheetsConfig.salesSheetUrl, 
+                            'sales'
+                        );
+                        
+                        if (rawData.length > 0) {
+                            processData();
+                            updateFilters();
+                            applyFilters();
+                            showNotification('Sales data refreshed from Google Sheets', 'info');
+                        }
+                    } catch (error) {
+                        console.error('Error refreshing sales data:', error);
+                    }
+                }
+                
+                // Refresh customer data if configured
+                if (googleSheetsConfig.customerSheetUrl) {
+                    try {
+                        const customerConfig = JSON.parse(localStorage.getItem('customerSheetConfig') || '{}');
+                        await loadDataFromGoogleSheets(
+                            googleSheetsConfig.customerSheetUrl, 
+                            'customer'
+                        );
+                        
+                        if (customerRawData.length > 0) {
+                            processData();
+                            updateFilters();
+                            applyFilters();
+                            showNotification('Customer data refreshed from Google Sheets', 'info');
+                        }
+                    } catch (error) {
+                        console.error('Error refreshing customer data:', error);
+                    }
+                }
+            }, interval);
+            
+            // Show initial notification
+            showNotification(`Auto-refresh enabled. Will check for updates every ${googleSheetsConfig.refreshInterval} minutes.`, 'info');
+        }
+        
+        // Show Google Sheets instructions
+        function showGoogleSheetsInstructions(isError = false) {
+            const modal = document.createElement('div');
+            modal.innerHTML = `
+                <div class="password-modal" id="sheetsInstructionsModal" style="display: flex;">
+                    <div class="password-modal-content">
+                        <h3>Google Sheets Integration Guide</h3>
+                        <div style="margin: 20px 0;">
+                            ${isError ? `
+                                <div style="background: #fee2e2; padding: 10px; border-radius: 6px; margin-bottom: 15px; border: 1px solid #fecaca;">
+                                    <p style="color: #dc2626; font-size: 14px; margin: 0;">
+                                        <strong>Important:</strong> Your sheet needs to be shared publicly to work with the dashboard.
+                                    </p>
+                                </div>
+                            ` : ''}
+                            
+                            <h4 style="margin-bottom: 10px; color: #1e293b;">Step-by-Step Setup:</h4>
+                            <ol style="text-align: left; margin-bottom: 20px; padding-left: 20px; color: #475569;">
+                                <li><strong>Open your Google Sheet</strong></li>
+                                <li><strong>Click the "Share" button (top-right)</strong></li>
+                                <li><strong>In the dialog that opens:</strong>
+                                    <ul style="margin-left: 20px; margin-top: 5px;">
+                                        <li>Click "Change to anyone with the link"</li>
+                                        <li>Select "Viewer" access</li>
+                                        <li>Click "Copy link"</li>
+                                        <li>Click "Done"</li>
+                                    </ul>
+                                </li>
+                                <li><strong>Return to dashboard and click the load buttons</strong></li>
+                            </ol>
+                            
+                            <div style="background: #f8fafc; padding: 15px; border-radius: 8px; margin-top: 20px;">
+                                <h4 style="margin-bottom: 8px; color: #1e293b;">Your Sheets:</h4>
+                                <p style="color: #64748b; font-size: 13px;">
+                                    • Sales Data: <a href="${SALES_SHEET_URL}" target="_blank">${SALES_SHEET_URL}</a><br>
+                                    • Customer Data: <a href="${CUSTOMER_SHEET_URL}" target="_blank">${CUSTOMER_SHEET_URL}</a>
+                                </p>
+                            </div>
+                        </div>
+                        <div class="password-buttons">
+                            <button id="closeSheetsGuide" class="btn btn-confirm">Got it!</button>
+                        </div>
+                    </div>
+                </div>
+            `;
+            document.body.appendChild(modal);
+            
+            document.getElementById('closeSheetsGuide').addEventListener('click', function() {
+                document.getElementById('sheetsInstructionsModal').remove();
+            });
+            
+            document.getElementById('sheetsInstructionsModal').addEventListener('click', function(e) {
+                if (e.target === this) {
+                    this.remove();
+                }
+            });
+        }
+        
+        // Load pre-configured sheets
+        loadSalesSheet.addEventListener('click', async function() {
+            sheetStatus.textContent = 'Loading Sales Data...';
+            sheetStatus.style.color = '#f59e0b';
+            const data = await loadDataFromGoogleSheets(SALES_SHEET_URL, 'sales');
+            if (data) {
+                showPreview(data);
+            }
+        });
+        
+        loadCustomerSheet.addEventListener('click', async function() {
+            sheetStatus.textContent = 'Loading Customer Data...';
+            sheetStatus.style.color = '#f59e0b';
+            const data = await loadDataFromGoogleSheets(CUSTOMER_SHEET_URL, 'customer');
+            if (data) {
+                showPreview(data);
+            }
+        });
+        
+        // Auto-load sheets on page load
+        async function autoLoadSheetsOnStartup() {
+            // Check if we should auto-load (first visit or no data)
+            const savedData = localStorage.getItem('salesDashboardData');
+            const savedCustomerData = localStorage.getItem('customerDashboardData');
+            
+            if ((!savedData || !savedCustomerData) || (JSON.parse(savedData || '[]').length === 0 || JSON.parse(savedCustomerData || '[]').length === 0)) {
+                sheetStatus.textContent = 'Auto-loading data from Google Sheets...';
+                sheetStatus.style.color = '#f59e0b';
+                
+                // Try to load sales data
+                setTimeout(async () => {
+                    const salesData = await loadDataFromGoogleSheets(SALES_SHEET_URL, 'sales');
+                    
+                    if (salesData) {
+                        // Try to load customer data
+                        setTimeout(async () => {
+                            const customerData = await loadDataFromGoogleSheets(CUSTOMER_SHEET_URL, 'customer');
+                            
+                            if (customerData) {
+                                // Both loaded successfully
+                                processData();
+                                updateFilters();
+                                applyFilters();
+                                showDashboardContent();
+                                showNotification('Dashboard auto-loaded from Google Sheets!', 'success');
+                            }
+                        }, 1000);
+                    }
+                }, 500);
+            }
+        }
+        
         // Export data as file
         function exportDashboardData() {
             if (rawData.length === 0 && customerRawData.length === 0) {
-                alert('No data to export. Please upload Excel files first.');
+                alert('No data to export. Please upload Excel files or connect Google Sheets first.');
                 return;
             }
             
             const dashboardData = {
                 sales: rawData,
                 customer: customerRawData,
+                googleSheetsConfig: googleSheetsConfig,
+                salesSheetConfig: localStorage.getItem('salesSheetConfig'),
+                customerSheetConfig: localStorage.getItem('customerSheetConfig'),
                 timestamp: new Date().toISOString(),
                 version: '1.0'
             };
@@ -955,7 +1771,7 @@
             document.body.removeChild(link);
             URL.revokeObjectURL(link.href);
             
-            alert('Dashboard data exported successfully! Send this .json file to your client along with the website URL.');
+            showNotification('Dashboard data exported successfully!', 'success');
         }
 
         // Import data from file
@@ -976,14 +1792,19 @@
                         localStorage.setItem('customerDashboardData', JSON.stringify(customerRawData));
                     }
                     
+                    if (importedData.googleSheetsConfig) {
+                        googleSheetsConfig = importedData.googleSheetsConfig;
+                        localStorage.setItem('googleSheetsConfig', JSON.stringify(googleSheetsConfig));
+                    }
+                    
                     processData();
                     updateFilters();
                     applyFilters();
-                    showDashboard();
+                    showDashboardContent();
                     
-                    alert('Dashboard data imported successfully!');
+                    showNotification('Dashboard data imported successfully!', 'success');
                 } catch (error) {
-                    alert('Error importing data: Invalid file format. Please make sure you are importing a valid dashboard data file.');
+                    showNotification('Error importing data: Invalid file format.', 'error');
                 }
             };
             
@@ -1007,7 +1828,7 @@
                                 - Select the data file you sent
                             </li>
                         </ol>
-                        <p><em>Note: The data file contains all your dashboard data in a secure format.</em></p>
+                        <p><em>For Google Sheets: Just share the dashboard link. Data updates automatically!</em></p>
                         <div class="password-buttons">
                             <button id="shareClose" class="btn btn-confirm">OK</button>
                         </div>
@@ -1032,15 +1853,28 @@
         salesTab.addEventListener('click', function() {
             salesTab.classList.add('active');
             customerTab.classList.remove('active');
+            googleSheetsTab.classList.remove('active');
             salesUpload.classList.add('active');
             customerUpload.classList.remove('active');
+            googleSheetsUpload.classList.remove('active');
         });
         
         customerTab.addEventListener('click', function() {
             customerTab.classList.add('active');
             salesTab.classList.remove('active');
+            googleSheetsTab.classList.remove('active');
             customerUpload.classList.add('active');
             salesUpload.classList.remove('active');
+            googleSheetsUpload.classList.remove('active');
+        });
+        
+        googleSheetsTab.addEventListener('click', function() {
+            googleSheetsTab.classList.add('active');
+            salesTab.classList.remove('active');
+            customerTab.classList.remove('active');
+            googleSheetsUpload.classList.add('active');
+            salesUpload.classList.remove('active');
+            customerUpload.classList.remove('active');
         });
         
         // Dashboard tab switching
@@ -1064,29 +1898,60 @@
         
         // Check if data exists in localStorage on page load
         document.addEventListener('DOMContentLoaded', function() {
-            const savedData = localStorage.getItem('salesDashboardData');
-            const savedCustomerData = localStorage.getItem('customerDashboardData');
+            // Check login status first
+            checkLoginStatus();
             
-            if (savedData) {
-                rawData = JSON.parse(savedData);
+            // Initialize dashboard data only if logged in
+            if (sessionStorage.getItem('isLoggedIn') === 'true') {
+                const savedData = localStorage.getItem('salesDashboardData');
+                const savedCustomerData = localStorage.getItem('customerDashboardData');
+                
+                if (savedData) {
+                    rawData = JSON.parse(savedData);
+                }
+                
+                if (savedCustomerData) {
+                    customerRawData = JSON.parse(savedCustomerData);
+                }
+                
+                // Check for Google Sheets config
+                const salesConfig = localStorage.getItem('salesSheetConfig');
+                const customerConfig = localStorage.getItem('customerSheetConfig');
+                
+                if (salesConfig) {
+                    const config = JSON.parse(salesConfig);
+                    googleSheetsConfig.salesSheetUrl = config.url;
+                }
+                
+                if (customerConfig) {
+                    const config = JSON.parse(customerConfig);
+                    googleSheetsConfig.customerSheetUrl = config.url;
+                }
+                
+                if (rawData.length > 0 || customerRawData.length > 0) {
+                    processData();
+                    updateFilters();
+                    applyFilters();
+                    showDashboardContent();
+                } else {
+                    showNoDataMessage();
+                    // Try to auto-load from Google Sheets
+                    autoLoadSheetsOnStartup();
+                }
+                
+                // Setup auto-refresh
+                setupAutoRefresh();
+                
+                // Show import/export section
+                importExportSection.style.display = 'block';
             }
-            
-            if (savedCustomerData) {
-                customerRawData = JSON.parse(savedCustomerData);
-            }
-            
-            if (rawData.length > 0 || customerRawData.length > 0) {
-                processData();
-                updateFilters();
-                applyFilters();
-                showDashboard();
-            } else {
-                showNoDataMessage();
-            }
-            
-            // Show import/export section
-            importExportSection.style.display = 'block';
         });
+        
+        // Login form submit
+        loginForm.addEventListener('submit', handleLogin);
+        
+        // Logout button
+        logoutBtn.addEventListener('click', handleLogout);
         
         // Handle file uploads
         salesFileInput.addEventListener('change', function(e) {
@@ -1156,6 +2021,11 @@
             // Show only first 5 rows for preview
             const previewData = data.slice(0, 5);
             
+            if (previewData.length === 0) {
+                previewTableContainer.innerHTML = '<p>No data to preview</p>';
+                return;
+            }
+            
             let tableHTML = `
                 <table class="preview-table">
                     <thead>
@@ -1169,7 +2039,7 @@
             previewData.forEach(row => {
                 tableHTML += '<tr>';
                 Object.values(row).forEach(value => {
-                    tableHTML += `<td>${value}</td>`;
+                    tableHTML += `<td>${value !== null && value !== undefined ? value : ''}</td>`;
                 });
                 tableHTML += '</tr>';
             });
@@ -1185,9 +2055,11 @@
             saveDataToLocalStorage();
             updateFilters();
             applyFilters();
-            showDashboard();
+            showDashboardContent();
             previewSection.style.display = 'none';
             uploadSection.style.display = 'none';
+            
+            showNotification('Dashboard created successfully!', 'success');
         });
         
         // Cancel upload
@@ -1196,6 +2068,7 @@
             customerFileInput.value = '';
             salesFileName.textContent = '';
             customerFileName.textContent = '';
+            sheetStatus.textContent = '';
             previewSection.style.display = 'none';
         });
         
@@ -1420,6 +2293,7 @@
         function saveDataToLocalStorage() {
             localStorage.setItem('salesDashboardData', JSON.stringify(rawData));
             localStorage.setItem('customerDashboardData', JSON.stringify(customerRawData));
+            localStorage.setItem('googleSheetsConfig', JSON.stringify(googleSheetsConfig));
         }
         
         // Update filter options
@@ -2476,8 +3350,8 @@
             });
         }
         
-        // Show dashboard
-        function showDashboard() {
+        // Show dashboard content
+        function showDashboardContent() {
             filtersSection.style.display = 'block';
             dashboardContent.style.display = 'block';
             footer.style.display = 'block';
@@ -2486,6 +3360,11 @@
             
             // Show share button
             shareBtn.style.display = 'block';
+            
+            // Show auto-refresh section if using Google Sheets
+            if (googleSheetsConfig.salesSheetUrl || googleSheetsConfig.customerSheetUrl) {
+                autoRefreshSection.style.display = 'block';
+            }
             
             // Initialize with overview tab
             updateDashboardForTab();
@@ -2499,6 +3378,7 @@
             noDataMessage.style.display = 'block';
             uploadSection.style.display = 'block'; // Show upload section when no data
             shareBtn.style.display = 'none'; // Hide share button when no data
+            autoRefreshSection.style.display = 'none';
         }
         
         // Format numbers with commas and 0 decimals
@@ -2529,6 +3409,51 @@
             }
         });
         
+        // Google Sheets guide button
+        sheetsGuideBtn.addEventListener('click', showGoogleSheetsInstructions);
+        
+        // Auto-refresh toggle
+        toggleRefreshBtn.addEventListener('click', function() {
+            googleSheetsConfig.autoRefresh = !googleSheetsConfig.autoRefresh;
+            
+            if (googleSheetsConfig.autoRefresh) {
+                refreshSettings.style.display = 'block';
+                toggleRefreshBtn.textContent = 'Disable Auto-Refresh';
+                refreshStatus.textContent = 'On (every ' + googleSheetsConfig.refreshInterval + ' minutes)';
+                refreshBadge.style.display = 'inline-block';
+                startAutoRefresh();
+            } else {
+                refreshSettings.style.display = 'none';
+                toggleRefreshBtn.textContent = 'Enable Auto-Refresh';
+                refreshStatus.textContent = 'Off';
+                refreshBadge.style.display = 'none';
+                
+                if (refreshTimer) {
+                    clearInterval(refreshTimer);
+                    refreshTimer = null;
+                }
+                
+                showNotification('Auto-refresh disabled', 'info');
+            }
+            
+            // Save config
+            localStorage.setItem('googleSheetsConfig', JSON.stringify(googleSheetsConfig));
+        });
+        
+        // Save refresh settings
+        saveRefreshBtn.addEventListener('click', function() {
+            googleSheetsConfig.refreshInterval = parseInt(refreshInterval.value);
+            localStorage.setItem('googleSheetsConfig', JSON.stringify(googleSheetsConfig));
+            
+            refreshStatus.textContent = 'On (every ' + googleSheetsConfig.refreshInterval + ' minutes)';
+            
+            if (googleSheetsConfig.autoRefresh) {
+                startAutoRefresh();
+            }
+            
+            showNotification('Auto-refresh settings saved', 'success');
+        });
+        
         // Password protection for clear data
         clearDataBtn.addEventListener('click', function() {
             passwordModal.style.display = 'flex';
@@ -2544,12 +3469,22 @@
             if (passwordInput.value === '19591') {
                 localStorage.removeItem('salesDashboardData');
                 localStorage.removeItem('customerDashboardData');
+                localStorage.removeItem('salesSheetConfig');
+                localStorage.removeItem('customerSheetConfig');
+                localStorage.removeItem('googleSheetsConfig');
+                
                 rawData = [];
                 processedData = [];
                 filteredData = [];
                 customerRawData = [];
                 processedCustomerData = [];
                 filteredCustomerData = [];
+                googleSheetsConfig = {
+                    salesSheetUrl: null,
+                    customerSheetUrl: null,
+                    autoRefresh: false,
+                    refreshInterval: 15
+                };
                 
                 // Destroy all charts
                 Object.values(charts).forEach(chart => {
@@ -2557,15 +3492,26 @@
                 });
                 charts = {};
                 
+                // Clear file inputs
                 salesFileInput.value = '';
                 customerFileInput.value = '';
                 salesFileName.textContent = '';
                 customerFileName.textContent = '';
+                sheetStatus.textContent = '';
+                
+                // Stop auto-refresh
+                if (refreshTimer) {
+                    clearInterval(refreshTimer);
+                    refreshTimer = null;
+                }
+                
                 passwordModal.style.display = 'none';
+                autoRefreshSection.style.display = 'none';
                 
                 showNoDataMessage();
+                showNotification('All data cleared successfully', 'success');
             } else {
-                alert('Incorrect security code. Data not cleared.');
+                showNotification('Incorrect security code. Data not cleared.', 'error');
                 passwordInput.value = '';
                 passwordInput.focus();
             }
@@ -2582,6 +3528,13 @@
         passwordInput.addEventListener('keypress', function(event) {
             if (event.key === 'Enter') {
                 passwordConfirm.click();
+            }
+        });
+        
+        // Enter key support for login form
+        document.getElementById('password').addEventListener('keypress', function(event) {
+            if (event.key === 'Enter') {
+                loginForm.dispatchEvent(new Event('submit'));
             }
         });
     </script>
